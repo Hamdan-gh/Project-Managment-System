@@ -1,6 +1,4 @@
-Here’s a clean, professional **README.md** you can drop straight into your project repo. I’ve structured it well for GitHub, kept it academic-friendly, and easy to skim 👌
 
----
 
 # FYP Management System
 
