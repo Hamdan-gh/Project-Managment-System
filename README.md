@@ -285,11 +285,3 @@ Refer to `DEPLOYMENT.md` for full deployment steps.
 
 ---
 
-If you want, I can also:
-
-* Simplify this for **school submission**
-* Convert it to **PDF**
-* Customize it with **your name & index number**
-* Or tailor it for **GitHub showcase**
-
-Just say the word 🔥
