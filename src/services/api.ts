@@ -1,24 +1,45 @@
 
 import axios from "axios";
 
-// Try different base URLs in order of preference
-const possibleBaseURLs = [
-  "/api", // Proxy (if available)
-  "http://127.0.0.1:5000/api",
-  "http://localhost:5000/api",
-  `http://${window.location.hostname}:5000/api`
-];
+// Use environment variable for production, fallback to local for development
+const getBaseURL = () => {
+  // Check if we have a production API URL from environment variable
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Development fallback URLs
+  const possibleBaseURLs = [
+    "/api", // Proxy (if available)
+    "http://127.0.0.1:5000/api",
+    "http://localhost:5000/api",
+    `http://${window.location.hostname}:5000/api`
+  ];
+  
+  return possibleBaseURLs[0];
+};
 
-let baseURL = possibleBaseURLs[0];
+const baseURL = getBaseURL();
 
-// Test connectivity and fallback if needed
+// Test connectivity for development only
 const testConnection = async () => {
+  if (import.meta.env.VITE_API_URL) {
+    console.log(`Using production API: ${baseURL}`);
+    return;
+  }
+  
+  const possibleBaseURLs = [
+    "/api",
+    "http://127.0.0.1:5000/api",
+    "http://localhost:5000/api",
+    `http://${window.location.hostname}:5000/api`
+  ];
+  
   for (const url of possibleBaseURLs) {
     try {
       const testApi = axios.create({ baseURL: url, timeout: 2000 });
       await testApi.get('/test');
-      baseURL = url;
-      console.log(`Using API base URL: ${baseURL}`);
+      console.log(`Using API base URL: ${url}`);
       break;
     } catch (error) {
       // Silently try next URL
