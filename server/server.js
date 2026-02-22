@@ -66,7 +66,6 @@ const distPath = path.join(__dirname, '../dist');
 console.log('Looking for dist folder at:', distPath);
 
 // Check if dist folder exists
-import fs from 'fs';
 if (fs.existsSync(distPath)) {
   console.log('✓ dist folder found, serving static files');
   app.use(express.static(distPath));
