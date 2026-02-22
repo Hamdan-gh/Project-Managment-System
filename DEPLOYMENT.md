@@ -1,17 +1,17 @@
 # Deployment Guide - Render
 
-## Frontend Deployment (Static Site)
+## Full Stack Deployment (Frontend + Backend Together)
 
 ### Prerequisites
-- Backend already deployed on Render
 - GitHub repository with your code
+- MongoDB Atlas database set up
 
-### Steps to Deploy Frontend on Render
+### Steps to Deploy on Render
 
 1. **Go to Render Dashboard**
    - Visit https://dashboard.render.com/
    - Click "New +" button
-   - Select "Static Site"
+   - Select "Web Service"
 
 2. **Connect Your Repository**
    - Connect your GitHub account if not already connected
@@ -19,65 +19,51 @@
    - Click "Connect"
 
 3. **Configure Build Settings**
-   - **Name**: Choose a name (e.g., `student-supervision-frontend`)
+   - **Name**: Choose a name (e.g., `student-supervision-system`)
    - **Branch**: `main` (or your default branch)
-   - **Root Directory**: Leave empty (or `.` if root)
-   - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
+   - **Root Directory**: `server`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && cd .. && npm install && npm run build && cd server && npm install`
+   - **Start Command**: `node server.js`
 
 4. **Add Environment Variables**
-   Click "Advanced" and add:
-   - **Key**: `VITE_API_URL`
-   - **Value**: `https://your-backend-app.onrender.com/api`
-   
-   Replace `your-backend-app.onrender.com` with your actual backend URL
+   Click "Advanced" and add these environment variables:
+   - **Key**: `MONGO_URI`
+   - **Value**: Your MongoDB Atlas connection string
+   - **Key**: `JWT_SECRET`
+   - **Value**: Your JWT secret key
+   - **Key**: `PORT`
+   - **Value**: `5000`
+   - **Key**: `NODE_ENV`
+   - **Value**: `production`
 
 5. **Deploy**
-   - Click "Create Static Site"
+   - Click "Create Web Service"
    - Wait for the build to complete (5-10 minutes)
-   - Your frontend will be live at: `https://your-app-name.onrender.com`
+   - Your app will be live at: `https://your-app-name.onrender.com`
 
 ### Important Notes
 
-- **Free Tier**: Static sites on Render are free with 100GB bandwidth/month
-- **Custom Domain**: You can add a custom domain in the site settings
+- **Free Tier**: Web services on Render's free tier spin down after 15 minutes of inactivity
+- **Custom Domain**: You can add a custom domain in the service settings
 - **Auto-Deploy**: Render will automatically redeploy when you push to your branch
 - **Build Time**: First build takes longer, subsequent builds are faster
-
-### Update Backend CORS
-
-After deploying, update your backend's CORS settings to allow your frontend URL:
-
-In `server/server.js`, update the CORS configuration:
-
-```javascript
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://your-frontend-app.onrender.com'  // Add your frontend URL
-  ],
-  credentials: true
-}));
-```
-
-Then redeploy your backend.
 
 ### Troubleshooting
 
 **Build Fails:**
 - Check build logs in Render dashboard
-- Ensure all dependencies are in `package.json`
+- Ensure all dependencies are in both root and server `package.json`
 - Verify Node version compatibility
 
-**API Connection Issues:**
-- Verify `VITE_API_URL` environment variable is set correctly
-- Check backend CORS settings include frontend URL
-- Ensure backend is running and accessible
-
 **404 on Page Refresh:**
-- Render automatically handles SPA routing for static sites
-- No additional configuration needed
+- This is now fixed! The server serves the React app and handles all routes
+- Make sure the build completed successfully and `dist` folder was created
+
+**API Connection Issues:**
+- Verify all environment variables are set correctly
+- Check MongoDB Atlas allows connections from anywhere (0.0.0.0/0)
+- Ensure backend is running and accessible
 
 ### Local Testing with Production API
 

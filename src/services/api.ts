@@ -3,6 +3,11 @@ import axios from "axios";
 
 // Use environment variable for production, fallback to local for development
 const getBaseURL = () => {
+  // In production (when served from the same domain), use relative path
+  if (import.meta.env.PROD) {
+    return "/api";
+  }
+  
   // Check if we have a production API URL from environment variable
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
