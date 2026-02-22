@@ -21,10 +21,10 @@
 3. **Configure Build Settings**
    - **Name**: Choose a name (e.g., `student-supervision-system`)
    - **Branch**: `main` (or your default branch)
-   - **Root Directory**: `server`
+   - **Root Directory**: Leave empty (use root of repository)
    - **Runtime**: `Node`
-   - **Build Command**: `npm install && cd .. && npm install && npm run build && cd server && npm install`
-   - **Start Command**: `node server.js`
+   - **Build Command**: `npm install && npm run build && cd server && npm install`
+   - **Start Command**: `cd server && node server.js`
 
 4. **Add Environment Variables**
    Click "Advanced" and add these environment variables:

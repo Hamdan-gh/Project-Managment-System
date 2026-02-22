@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 import authRoutes from "./routes/authRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
@@ -19,6 +20,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 app.use(cors({
   origin: true, // Allow all origins for now
   credentials: true,
@@ -42,6 +50,7 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "API is working", timestamp: new Date().toISOString() });
 });
 
+// API Routes - must come before static file serving
 app.use("/api/auth", authRoutes);
 app.use("/api/proposals", proposalRoutes);
 app.use("/api/messages", messageRoutes);
@@ -49,12 +58,35 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/chapters", chapterRoutes);
 app.use("/api/users", userRoutes);
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Handle React routing, return all requests to React app
+// Serve static files from the React app (only in production)
+const distPath = path.join(__dirname, '../dist');
+console.log('Looking for dist folder at:', distPath);
+
+// Check if dist folder exists
+import fs from 'fs';
+if (fs.existsSync(distPath)) {
+  console.log('✓ dist folder found, serving static files');
+  app.use(express.static(distPath));
+} else {
+  console.warn('⚠ dist folder not found at', distPath);
+}
+
+// Handle React routing - return index.html for all non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ msg: 'API endpoint not found' });
+  }
+  
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('Frontend not built. Please run: npm run build');
+  }
 });
 
 const PORT = process.env.PORT || 5000;

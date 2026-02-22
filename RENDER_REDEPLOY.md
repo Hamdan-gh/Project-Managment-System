@@ -42,18 +42,56 @@ After deployment completes:
 
 If you need to reconfigure your Render service:
 
-- **Root Directory**: `server`
-- **Build Command**: `npm install && cd .. && npm install && npm run build && cd server && npm install`
-- **Start Command**: `node server.js`
+- **Root Directory**: Leave empty (use root of repository)
+- **Build Command**: `npm install && npm run build && cd server && npm install`
+- **Start Command**: `cd server && node server.js`
+- **Environment Variables**: Make sure these are set:
+  - `MONGO_URI` - Your MongoDB connection string
+  - `JWT_SECRET` - Your JWT secret key
+  - `PORT` - Set to `10000` (Render's default)
+  - `NODE_ENV` - Set to `production`
 
 ## Troubleshooting
 
-**Still getting 404:**
-- Check Render logs to ensure build completed successfully
-- Verify the `dist` folder was created during build
-- Make sure the start command is `node server.js` (not `npm start`)
+**Still getting 404 on /api/auth:**
+- Check Render logs: Look for "✓ dist folder found" message
+- Verify the build command completed successfully
+- Check that the logs show "MongoDB Atlas connected"
+- Look for the request logs showing `POST /api/auth/login`
+
+**Build fails:**
+- Check Render logs for specific error messages
+- Ensure all dependencies are in `package.json`
+- Verify Node version is compatible (16.x or higher)
+
+**dist folder not found:**
+- The build command must run from the root directory
+- Make sure "Root Directory" in Render is empty (not set to `server`)
+- Check build logs to see if `npm run build` completed successfully
 
 **API not working:**
 - Check that all environment variables are set in Render dashboard
 - Verify MongoDB connection string is correct
 - Check server logs for any errors
+- Make sure JWT_SECRET is set
+
+## Testing Locally
+
+To test the production build locally before deploying:
+
+```bash
+# Build the frontend
+npm install
+npm run build
+
+# Start the server
+cd server
+npm install
+node server.js
+```
+
+Then visit http://localhost:5000 and test:
+- Homepage loads
+- Login works
+- Page refresh doesn't show 404
+- API calls work
