@@ -35,12 +35,30 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Validate required environment variables
+if (!process.env.MONGO_URI) {
+  console.error('FATAL: MONGO_URI environment variable is not set');
+  process.exit(1);
+}
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
+
+console.log('Environment check:');
+console.log('- MONGO_URI:', process.env.MONGO_URI ? '✓ Set' : '✗ Missing');
+console.log('- JWT_SECRET:', process.env.JWT_SECRET ? '✓ Set' : '✗ Missing');
+console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
+
 mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
 })
-  .then(() => console.log("MongoDB Atlas connected"))
-  .catch(err => console.error("MongoDB error:", err));
+  .then(() => console.log("✓ MongoDB Atlas connected successfully"))
+  .catch(err => {
+    console.error("✗ MongoDB connection error:", err.message);
+    process.exit(1);
+  });
 
 app.get("/", (req, res) => {
   res.send("FYP System API running");
@@ -74,30 +92,35 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const distPath = path.join(__dirname, '../dist');
 console.log('Looking for dist folder at:', distPath);
 
-// Check if dist folder exists
+// Check if dist folder exists and serve static files
 if (fs.existsSync(distPath)) {
   console.log('✓ dist folder found, serving static files');
   app.use(express.static(distPath));
+  
+  // Handle React routing - return index.html for all non-API routes
+  // This MUST be last so API routes are handled first
+  app.get('*', (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ msg: 'API endpoint not found' });
+    }
+    
+    const indexPath = path.join(distPath, 'index.html');
+    res.sendFile(indexPath);
+  });
 } else {
   console.warn('⚠ dist folder not found at', distPath);
+  
+  // Fallback catch-all when dist doesn't exist
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ msg: 'API endpoint not found' });
+    }
+    res.status(404).send('Frontend not built. Please run: npm run build');
+  });
 }
 
-// Handle React routing - return index.html for all non-API routes
-app.get('*', (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ msg: 'API endpoint not found' });
-  }
-  
-  const indexPath = path.join(distPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send('Frontend not built. Please run: npm run build');
-  }
-});
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 1000;
 console.log('Environment PORT variable:', process.env.PORT);
 console.log('Using PORT:', PORT);
 
