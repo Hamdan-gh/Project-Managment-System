@@ -196,23 +196,39 @@ router.delete("/:id", auth, async (req, res) => {
 // Download chapter file
 router.get("/download/:id", auth, async (req, res) => {
   try {
+    console.log("Download request for chapter:", req.params.id);
     const chapter = await Chapter.findById(req.params.id);
-    if (!chapter) return res.status(404).json({ msg: "Chapter not found" });
+    if (!chapter) {
+      console.log("Chapter not found:", req.params.id);
+      return res.status(404).json({ msg: "Chapter not found" });
+    }
+
+    console.log("Chapter found:", chapter._id, "filePath:", chapter.filePath);
 
     // Check permissions
     if (req.user.role === 'student' && chapter.student.toString() !== req.user._id.toString()) {
+      console.log("Access denied: student mismatch");
       return res.status(403).json({ msg: "Access denied" });
     }
     if (req.user.role === 'supervisor' && chapter.supervisor.toString() !== req.user._id.toString()) {
+      console.log("Access denied: supervisor mismatch");
       return res.status(403).json({ msg: "Access denied" });
     }
 
-    if (!chapter.filePath || !fs.existsSync(chapter.filePath)) {
-      return res.status(404).json({ msg: "File not found" });
+    if (!chapter.filePath) {
+      console.log("No file path in chapter record");
+      return res.status(404).json({ msg: "No file uploaded for this chapter" });
     }
 
-    res.download(chapter.filePath, chapter.fileName || 'chapter.pdf');
+    if (!fs.existsSync(chapter.filePath)) {
+      console.log("File does not exist at path:", chapter.filePath);
+      return res.status(404).json({ msg: "File not found on server" });
+    }
+
+    console.log("Downloading file:", chapter.filePath);
+    res.download(path.resolve(chapter.filePath), chapter.fileName || 'chapter.pdf');
   } catch (error) {
+    console.error("Error in download route:", error);
     res.status(500).json({ msg: error.message });
   }
 });
@@ -220,24 +236,40 @@ router.get("/download/:id", auth, async (req, res) => {
 // Preview chapter file (for PDF viewing)
 router.get("/preview/:id", auth, async (req, res) => {
   try {
+    console.log("Preview request for chapter:", req.params.id);
     const chapter = await Chapter.findById(req.params.id);
-    if (!chapter) return res.status(404).json({ msg: "Chapter not found" });
+    if (!chapter) {
+      console.log("Chapter not found:", req.params.id);
+      return res.status(404).json({ msg: "Chapter not found" });
+    }
+
+    console.log("Chapter found:", chapter._id, "filePath:", chapter.filePath);
 
     // Check permissions
     if (req.user.role === 'student' && chapter.student.toString() !== req.user._id.toString()) {
+      console.log("Access denied: student mismatch");
       return res.status(403).json({ msg: "Access denied" });
     }
     if (req.user.role === 'supervisor' && chapter.supervisor.toString() !== req.user._id.toString()) {
+      console.log("Access denied: supervisor mismatch");
       return res.status(403).json({ msg: "Access denied" });
     }
 
-    if (!chapter.filePath || !fs.existsSync(chapter.filePath)) {
-      return res.status(404).json({ msg: "File not found" });
+    if (!chapter.filePath) {
+      console.log("No file path in chapter record");
+      return res.status(404).json({ msg: "No file uploaded for this chapter" });
     }
 
+    if (!fs.existsSync(chapter.filePath)) {
+      console.log("File does not exist at path:", chapter.filePath);
+      return res.status(404).json({ msg: "File not found on server" });
+    }
+
+    console.log("Sending file:", chapter.filePath);
     // For PDF preview, we can serve the file directly
-    res.sendFile(chapter.filePath);
+    res.sendFile(path.resolve(chapter.filePath));
   } catch (error) {
+    console.error("Error in preview route:", error);
     res.status(500).json({ msg: error.message });
   }
 });

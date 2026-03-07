@@ -15,6 +15,8 @@ interface User {
   specialization?: string;
   maxStudents?: number;
   supervisor?: string;
+  avatarPath?: string;
+  avatarFileName?: string;
 }
 
 interface AuthContextType {

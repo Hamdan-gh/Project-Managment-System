@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface NavItem {
   label: string;
@@ -134,11 +136,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* User section */}
           <div className="border-t border-sidebar-border p-4">
-            <div className="mb-4 rounded-lg bg-sidebar-accent p-3">
-              <p className="text-sm font-medium text-sidebar-foreground">
-                {user?.name || "User"}
-              </p>
-              <p className="text-xs text-sidebar-foreground/70">{roleLabel}</p>
+            <div className="mb-4 rounded-lg bg-sidebar-accent p-3 flex items-center gap-3">
+              <UserAvatar 
+                user={user} 
+                className="h-10 w-10"
+                fallbackClassName="bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {user?.name || "User"}
+                </p>
+                <p className="text-xs text-sidebar-foreground/70">{roleLabel}</p>
+              </div>
             </div>
             <Button
               variant="ghost"
@@ -164,13 +173,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
+            <ThemeSwitcher />
             <div className="hidden sm:block text-right">
               <p className="text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </div>
+            <UserAvatar 
+              user={user} 
+              className="h-10 w-10"
+              fallbackClassName="bg-primary text-primary-foreground font-semibold"
+            />
           </div>
         </header>
 

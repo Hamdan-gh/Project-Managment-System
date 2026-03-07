@@ -16,6 +16,12 @@ dist-ssr
 .env.*.local
 server/.env
 
+# Uploads
+server/uploads/chapters/*
+!server/uploads/chapters/.gitkeep
+server/uploads/avatars/*
+!server/uploads/avatars/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

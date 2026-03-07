@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Loader2, Shield, Users, FileText, MessageSquare } from "lucide-react";
 import { z } from "zod";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your email or matric number"),
@@ -86,7 +87,12 @@ export default function Auth() {
   ];
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
+      {/* Theme Switcher - Fixed top right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeSwitcher />
+      </div>
+      
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden">
         {/* Background Pattern */}

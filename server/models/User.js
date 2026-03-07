@@ -15,7 +15,9 @@ const UserSchema = new mongoose.Schema({
   level: String, // for students
   specialization: String, // for supervisors
   maxStudents: { type: Number, default: 10 }, // for supervisors
-  supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // for students
+  supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // for students
+  avatarPath: String, // path to avatar image
+  avatarFileName: String // original filename
 }, { timestamps: true });
 
 export default mongoose.model("User", UserSchema);

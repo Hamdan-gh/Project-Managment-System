@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Users, FileText, MessageSquare, Shield, ArrowRight, CheckCircle } from "lucide-react";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const Index = () => {
   const { user, role, isLoading } = useAuth();
@@ -73,12 +74,15 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground">Project Supervision</p>
               </div>
             </div>
-            <Link to="/auth">
-              <Button className="rounded-xl shadow-lg shadow-primary/20">
-                Sign In
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              <Link to="/auth">
+                <Button className="rounded-xl shadow-lg shadow-primary/20">
+                  Sign In
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

@@ -133,12 +133,17 @@ export default function ChapterReviews() {
 
   const previewChapter = async (chapterId: string) => {
     try {
-      const response = await api.get(`/chapters/preview/${chapterId}`);
-      setPreviewUrl(response.data);
+      const response = await api.get(`/chapters/preview/${chapterId}`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
       toast.success("PDF preview loaded");
     } catch (error: any) {
       console.error("Error loading preview:", error);
-      toast.error("Failed to load PDF preview");
+      const errorMsg = error.response?.data?.msg || "Failed to load PDF preview";
+      toast.error(errorMsg);
     }
   };
 
