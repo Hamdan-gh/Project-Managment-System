@@ -22,10 +22,10 @@ const createAdmin = async () => {
     const User = mongoose.model("User", UserSchema);
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: "saeedhamdan@gmail.com" });
+    const existingAdmin = await User.findOne({ email: "john@gmail.com" });
     if (existingAdmin) {
       console.log("Admin user already exists!");
-      console.log("Email: saeedhamdan@gmail.com");
+      console.log("Email: john@gmail.com");
       console.log("Password: 123456");
       return;
     }
@@ -34,15 +34,15 @@ const createAdmin = async () => {
     const hashedPassword = await bcrypt.hash("123456", 10);
 
     const admin = new User({
-      name: "Admin User",
-      email: "saeedhamdan@gmail.com",
+      name: "John Doe",
+      email: "john@gmail.com",
       password: hashedPassword,
       role: "admin"
     });
 
     await admin.save();
     console.log("✅ Admin user created successfully!");
-    console.log("Email: saeedhamdan@gmail.com");
+    console.log("Email: john@gmail.com");
     console.log("Password: 123456");
 
   } catch (error) {

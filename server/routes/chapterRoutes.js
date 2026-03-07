@@ -100,7 +100,8 @@ router.post("/", auth, upload.single('file'), async (req, res) => {
 
     const chapter = await Chapter.create(chapterData);
     console.log("Chapter created:", chapter._id);
-    await chapter.populate('student', 'name email').populate('supervisor', 'name email');
+    await chapter.populate('student', 'name email');
+    await chapter.populate('supervisor', 'name email');
     console.log("Created chapter:", chapter._id, "with supervisor:", chapter.supervisor?._id);
     res.json(chapter);
   } catch (error) {
