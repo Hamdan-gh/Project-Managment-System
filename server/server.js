@@ -58,6 +58,15 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/chapters", chapterRoutes);
 app.use("/api/users", userRoutes);
 
+// Log registered routes for debugging
+console.log('Registered API routes:');
+console.log('  - /api/auth');
+console.log('  - /api/proposals');
+console.log('  - /api/messages');
+console.log('  - /api/announcements');
+console.log('  - /api/chapters');
+console.log('  - /api/users');
+
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

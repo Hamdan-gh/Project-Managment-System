@@ -13,3 +13,4 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      # Do NOT set VITE_API_URL - let it use relative paths
