@@ -11,7 +11,7 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ user, className, fallbackClassName }: UserAvatarProps) {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://project-management-backend-in20.onrender.com/api';
 
   const getAvatarUrl = () => {
     // Only return URL if user has an avatar
