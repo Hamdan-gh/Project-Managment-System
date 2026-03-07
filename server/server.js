@@ -98,6 +98,10 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+console.log('Environment PORT variable:', process.env.PORT);
+console.log('Using PORT:', PORT);
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Server is listening on http://0.0.0.0:${PORT}`);
 });
