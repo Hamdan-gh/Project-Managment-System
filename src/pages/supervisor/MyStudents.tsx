@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/services/api";
@@ -19,6 +20,7 @@ interface Student {
   matricNumber: string;
   department: string;
   level: string;
+  avatarPath?: string;
   proposal_status: string | null;
 }
 
@@ -54,6 +56,7 @@ export default function MyStudents() {
           matricNumber: student.matricNumber,
           department: student.department,
           level: student.level,
+          avatarPath: student.avatarPath,
           proposal_status: proposal ? proposal.status : null,
         };
       });
@@ -174,7 +177,16 @@ export default function MyStudents() {
                 <TableBody>
                   {students.map((student) => (
                     <TableRow key={student._id}>
-                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <UserAvatar 
+                            user={student}
+                            className="h-8 w-8"
+                            fallbackClassName="bg-primary text-primary-foreground text-xs font-semibold"
+                          />
+                          <span>{student.name}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{student.matricNumber}</TableCell>
                       <TableCell>{student.email}</TableCell>
                       <TableCell>{student.department || "—"}</TableCell>

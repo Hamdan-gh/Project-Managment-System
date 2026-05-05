@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { VoiceMessage } from "@/components/VoiceMessage";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -24,6 +25,7 @@ interface Student {
   name: string;
   email: string;
   matricNumber: string;
+  avatarPath?: string;
   unread_count: number;
 }
 
@@ -79,6 +81,7 @@ export default function Messages() {
           name: student.name,
           email: student.email,
           matricNumber: student.matricNumber,
+          avatarPath: student.avatarPath,
           unread_count: unreadCount,
         };
       });
@@ -358,9 +361,16 @@ export default function Messages() {
                             : "hover:bg-muted"
                         )}
                       >
-                        <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-semibold flex-shrink-0 text-sm md:text-base">
-                          {student.name.charAt(0).toUpperCase()}
-                        </div>
+                        <UserAvatar 
+                          user={student}
+                          className="h-8 w-8 md:h-10 md:w-10"
+                          fallbackClassName={cn(
+                            "font-semibold text-sm md:text-base",
+                            selectedStudent?._id === student._id
+                              ? "bg-primary-foreground text-primary"
+                              : "bg-secondary text-secondary-foreground"
+                          )}
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate text-sm md:text-base">{student.name}</p>
                           <p className={cn(
@@ -391,9 +401,11 @@ export default function Messages() {
               <>
                 <CardHeader className="pb-3 border-b px-4 md:px-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm md:text-base">
-                      {selectedStudent.name.charAt(0).toUpperCase()}
-                    </div>
+                    <UserAvatar 
+                      user={selectedStudent}
+                      className="h-8 w-8 md:h-10 md:w-10"
+                      fallbackClassName="bg-primary text-primary-foreground font-semibold text-sm md:text-base"
+                    />
                     <div className="min-w-0 flex-1">
                       <CardTitle className="text-base md:text-lg truncate">{selectedStudent.name}</CardTitle>
                       <p className="text-xs md:text-sm text-muted-foreground truncate">

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { VoiceMessage } from "@/components/VoiceMessage";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -23,6 +24,7 @@ interface SupervisorInfo {
   _id: string;
   name: string;
   email: string;
+  avatarPath?: string;
 }
 
 interface Message {
@@ -65,6 +67,7 @@ export default function StudentMessages() {
           _id: data.user.supervisor._id,
           name: data.user.supervisor.name,
           email: data.user.supervisor.email,
+          avatarPath: data.user.supervisor.avatarPath,
         });
       }
     } catch (error) {
@@ -275,9 +278,11 @@ export default function StudentMessages() {
             <>
               <CardHeader className="pb-3 border-b px-4 md:px-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm md:text-base">
-                      {supervisor.name.charAt(0).toUpperCase()}
-                    </div>
+                    <UserAvatar 
+                      user={supervisor}
+                      className="h-8 w-8 md:h-10 md:w-10"
+                      fallbackClassName="bg-primary text-primary-foreground font-semibold text-sm md:text-base"
+                    />
                     <div className="min-w-0 flex-1">
                       <CardTitle className="text-base md:text-lg truncate">{supervisor.name}</CardTitle>
                       <p className="text-xs md:text-sm text-muted-foreground truncate">{supervisor.email}</p>
