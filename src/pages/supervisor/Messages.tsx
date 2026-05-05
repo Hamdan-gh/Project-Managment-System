@@ -116,29 +116,27 @@ export default function Messages() {
   const markMessagesAsRead = useCallback(async () => {
     if (!selectedStudent || !user) return;
 
-    const unreadMessages = messages.filter(msg => !msg.isRead && msg.sender._id === selectedStudent._id);
+    try {
+      await api.put(`/messages/mark-read/${selectedStudent._id}`);
+      
+      // Update local state
+      setMessages(prev => prev.map(msg =>
+        msg.sender._id === selectedStudent._id ? { ...msg, isRead: true } : msg
+      ));
 
-    if (unreadMessages.length === 0) return;
+      // Update student unread count locally
+      setStudents(prev => prev.map(student =>
+        student._id === selectedStudent._id
+          ? { ...student, unread_count: 0 }
+          : student
+      ));
 
-    for (const msg of unreadMessages) {
-      await api.put(`/messages/${msg._id}/read`);
+      // Refresh notification count after marking messages as read
+      await refreshNotifications();
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
     }
-
-    // Update local state
-    setMessages(prev => prev.map(msg =>
-      msg.sender._id === selectedStudent._id ? { ...msg, isRead: true } : msg
-    ));
-
-    // Update student unread count locally
-    setStudents(prev => prev.map(student =>
-      student._id === selectedStudent._id
-        ? { ...student, unread_count: 0 }
-        : student
-    ));
-
-    // Refresh notification count after marking messages as read
-    await refreshNotifications();
-  }, [selectedStudent, user, messages, refreshNotifications]);
+  }, [selectedStudent, user, refreshNotifications]);
 
   useEffect(() => {
     if (user) {
@@ -149,9 +147,14 @@ export default function Messages() {
   useEffect(() => {
     if (selectedStudent && user) {
       fetchMessages();
+    }
+  }, [selectedStudent, user, fetchMessages]);
+
+  useEffect(() => {
+    if (selectedStudent && user && messages.length > 0) {
       markMessagesAsRead();
     }
-  }, [selectedStudent, user]);
+  }, [selectedStudent, user, messages.length, markMessagesAsRead]);
 
   // Remove all auto-scroll effects - no automatic scrolling
 
