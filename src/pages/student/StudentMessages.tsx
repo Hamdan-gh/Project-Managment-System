@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { VoiceMessage } from "@/components/VoiceMessage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { MessageSquare, Send, Loader2, User, Trash2, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,13 +37,17 @@ interface Message {
     name: string;
     email: string;
   };
-  content: string;
+  content?: string;
+  messageType: "text" | "voice";
+  voiceUrl?: string;
+  voiceDuration?: number;
   isRead: boolean;
   createdAt: string;
 }
 
 export default function StudentMessages() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const [supervisor, setSupervisor] = useState<SupervisorInfo | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -94,10 +101,12 @@ export default function StudentMessages() {
 
     try {
       await api.put(`/messages/mark-read/${supervisor._id}`);
+      // Refresh notification count after marking messages as read
+      await refreshNotifications();
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
-  }, [supervisor, user]);
+  }, [supervisor, user, refreshNotifications]);
 
   // Remove all auto-scroll functions - make scrolling completely manual
 
@@ -125,15 +134,91 @@ export default function StudentMessages() {
       await api.post('/messages', {
         receiver: supervisor._id,
         content: newMessage.trim(),
+        messageType: "text"
       });
 
       setNewMessage("");
       // No auto-scroll - user must manually scroll to see new messages
       fetchMessages();
+      // Refresh notifications after sending message
+      await refreshNotifications();
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.response?.data?.msg || error.message || "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendVoice = async (audioBlob: Blob, duration: number) => {
+    if (!supervisor || !user) {
+      toast({
+        title: "Error",
+        description: "Missing supervisor or user information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!audioBlob || audioBlob.size === 0) {
+      toast({
+        title: "Error",
+        description: "No audio data to send",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Sending voice message:', {
+      blobSize: audioBlob.size,
+      blobType: audioBlob.type,
+      duration: duration,
+      receiverId: supervisor._id
+    });
+
+    setIsSending(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('voice', audioBlob, 'voice-message.webm');
+      formData.append('receiver', supervisor._id);
+      formData.append('duration', duration.toString());
+
+      console.log('FormData created, sending request...');
+
+      const response = await api.post('/messages/voice', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Voice message sent successfully:', response.data);
+
+      fetchMessages();
+      // Refresh notifications after sending message
+      await refreshNotifications();
+      toast({
+        title: "Success",
+        description: "Voice message sent successfully",
+      });
+    } catch (error: any) {
+      console.error('Error sending voice message:', error);
+      
+      let errorMessage = "Failed to send voice message";
+      if (error.response) {
+        errorMessage = error.response.data?.msg || `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        errorMessage = "Network error - could not reach server";
+      } else {
+        errorMessage = error.message || "Unknown error occurred";
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -257,7 +342,17 @@ export default function StudentMessages() {
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 )}
-                                <div className="message-text text-sm leading-relaxed mb-1">{message.content}</div>
+                                <div className="message-text text-sm leading-relaxed mb-1">
+                                  {message.messageType === "voice" && message.voiceUrl ? (
+                                    <VoiceMessage 
+                                      voiceUrl={message.voiceUrl}
+                                      duration={message.voiceDuration}
+                                      isOwn={isOwn}
+                                    />
+                                  ) : (
+                                    message.content
+                                  )}
+                                </div>
                                 <div
                                   className={cn(
                                     "text-xs flex items-center gap-1 justify-end",
@@ -298,6 +393,10 @@ export default function StudentMessages() {
                       className="min-h-[40px] md:min-h-[44px] resize-none text-sm md:text-base flex-1"
                       style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
                       autoComplete="off"
+                    />
+                    <VoiceRecorder 
+                      onSendVoice={handleSendVoice}
+                      disabled={isSending}
                     />
                     <Button
                       onClick={handleSendMessage}

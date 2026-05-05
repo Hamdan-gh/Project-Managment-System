@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { VoiceMessage } from "@/components/VoiceMessage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { MessageSquare, Send, Loader2, User, Trash2, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,13 +39,17 @@ interface Message {
     name: string;
     email: string;
   };
-  content: string;
+  content?: string;
+  messageType: "text" | "voice";
+  voiceUrl?: string;
+  voiceDuration?: number;
   isRead: boolean;
   createdAt: string;
 }
 
 export default function Messages() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -128,7 +135,10 @@ export default function Messages() {
         ? { ...student, unread_count: 0 }
         : student
     ));
-  }, [selectedStudent, user, messages]);
+
+    // Refresh notification count after marking messages as read
+    await refreshNotifications();
+  }, [selectedStudent, user, messages, refreshNotifications]);
 
   useEffect(() => {
     if (user) {
@@ -154,6 +164,7 @@ export default function Messages() {
       const { data } = await api.post('/messages', {
         receiver: selectedStudent._id,
         content: newMessage.trim(),
+        messageType: "text"
       });
 
       setMessages(prev => [...prev, {
@@ -169,14 +180,108 @@ export default function Messages() {
           email: selectedStudent.email,
         },
         content: data.content,
+        messageType: "text",
         isRead: data.isRead,
         createdAt: data.createdAt,
       }]);
       setNewMessage("");
+      // Refresh notifications after sending message
+      await refreshNotifications();
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.response?.data?.msg || error.message || "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendVoice = async (audioBlob: Blob, duration: number) => {
+    if (!selectedStudent || !user) {
+      toast({
+        title: "Error",
+        description: "Missing student or user information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!audioBlob || audioBlob.size === 0) {
+      toast({
+        title: "Error",
+        description: "No audio data to send",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Sending voice message:', {
+      blobSize: audioBlob.size,
+      blobType: audioBlob.type,
+      duration: duration,
+      receiverId: selectedStudent._id
+    });
+
+    setIsSending(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('voice', audioBlob, 'voice-message.webm');
+      formData.append('receiver', selectedStudent._id);
+      formData.append('duration', duration.toString());
+
+      console.log('FormData created, sending request...');
+
+      const { data } = await api.post('/messages/voice', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Voice message sent successfully:', data);
+
+      setMessages(prev => [...prev, {
+        _id: data._id,
+        sender: {
+          _id: user!._id,
+          name: user!.name,
+          email: user!.email,
+        },
+        receiver: {
+          _id: selectedStudent._id,
+          name: selectedStudent.name,
+          email: selectedStudent.email,
+        },
+        messageType: "voice",
+        voiceUrl: data.voiceUrl,
+        voiceDuration: data.voiceDuration,
+        isRead: data.isRead,
+        createdAt: data.createdAt,
+      }]);
+
+      toast({
+        title: "Success",
+        description: "Voice message sent successfully",
+      });
+      // Refresh notifications after sending voice message
+      await refreshNotifications();
+    } catch (error: any) {
+      console.error('Error sending voice message:', error);
+      
+      let errorMessage = "Failed to send voice message";
+      if (error.response) {
+        errorMessage = error.response.data?.msg || `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        errorMessage = "Network error - could not reach server";
+      } else {
+        errorMessage = error.message || "Unknown error occurred";
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -341,7 +446,17 @@ export default function Messages() {
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 )}
-                                <div className="message-text text-sm leading-relaxed mb-1">{message.content}</div>
+                                <div className="message-text text-sm leading-relaxed mb-1">
+                                  {message.messageType === "voice" && message.voiceUrl ? (
+                                    <VoiceMessage 
+                                      voiceUrl={message.voiceUrl}
+                                      duration={message.voiceDuration}
+                                      isOwn={isOwn}
+                                    />
+                                  ) : (
+                                    message.content
+                                  )}
+                                </div>
                                 <div
                                   className={cn(
                                     "text-xs flex items-center gap-1 justify-end",
@@ -381,6 +496,10 @@ export default function Messages() {
                         className="min-h-[40px] md:min-h-[44px] resize-none text-sm md:text-base flex-1"
                         style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
                         autoComplete="off"
+                      />
+                      <VoiceRecorder 
+                        onSendVoice={handleSendVoice}
+                        disabled={isSending}
                       />
                       <Button
                         onClick={handleSendMessage}

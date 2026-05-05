@@ -1,8 +1,41 @@
 import express from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import Message from "../models/Message.js";
 import auth from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Configure multer for voice message uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = 'uploads/voice-messages';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `voice-${uniqueSuffix}.webm`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for voice messages
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept audio files
+    if (file.mimetype.startsWith('audio/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'), false);
+    }
+  }
+});
 
 // Get messages for user
 router.get("/", auth, async (req, res) => {
@@ -35,6 +68,45 @@ router.post("/", auth, async (req, res) => {
     });
     res.json(message);
   } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
+// Send voice message
+router.post("/voice", auth, upload.single('voice'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: "No voice file uploaded" });
+    }
+
+    const { receiver, duration } = req.body;
+    
+    if (!receiver) {
+      return res.status(400).json({ msg: "Receiver is required" });
+    }
+
+    const voiceUrl = `/uploads/voice-messages/${req.file.filename}`;
+    
+    const message = await Message.create({
+      sender: req.user._id,
+      receiver,
+      messageType: "voice",
+      voiceUrl,
+      voiceDuration: duration ? parseFloat(duration) : null
+    });
+
+    // Populate sender and receiver info
+    await message.populate('sender', 'name email');
+    await message.populate('receiver', 'name email');
+    
+    res.json(message);
+  } catch (error) {
+    // Clean up uploaded file if message creation fails
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+    }
     res.status(500).json({ msg: error.message });
   }
 });

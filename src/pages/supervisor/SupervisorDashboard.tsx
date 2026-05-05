@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { Users, FileText, CheckCircle, Clock, XCircle, MessageSquare, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ interface RecentProposal {
 
 export default function SupervisorDashboard() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const [stats, setStats] = useState<SupervisorStats>({
     totalStudents: 0,
@@ -84,6 +86,9 @@ export default function SupervisorDashboard() {
       });
 
       setRecentProposals(recentProposalsWithNames);
+      
+      // Refresh notifications when dashboard is loaded
+      await refreshNotifications();
     } catch (error) {
       console.error("Error fetching supervisor data:", error);
       // Set default values on error

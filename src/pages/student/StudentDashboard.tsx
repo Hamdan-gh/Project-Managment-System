@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { FileText, MessageSquare, Bell, User, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +40,7 @@ interface AnnouncementData {
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [proposal, setProposal] = useState<ProposalData | null>(null);
@@ -88,6 +90,19 @@ export default function StudentDashboard() {
         createdAt: ann.createdAt,
         author: ann.author,
       })));
+
+      // Mark announcements as read when viewed on dashboard
+      for (const announcement of announcementsData) {
+        try {
+          await api.put(`/announcements/${announcement._id}/read`);
+        } catch (error) {
+          // Silently handle errors for marking as read
+          console.error("Error marking announcement as read:", error);
+        }
+      }
+
+      // Refresh notification count after marking announcements as read
+      await refreshNotifications();
 
       // Get unread messages count
       const { data: messages } = await api.get("/messages");

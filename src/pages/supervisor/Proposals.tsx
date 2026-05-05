@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { FileText, Loader2, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 
@@ -27,6 +28,7 @@ interface Proposal {
 
 export default function Proposals() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
@@ -89,6 +91,9 @@ export default function Proposals() {
       setSelectedProposal(null);
       setFeedback("");
       fetchProposals();
+      
+      // Refresh notifications after reviewing proposal (pending count changes)
+      await refreshNotifications();
     } catch (error: any) {
       toast({
         title: "Error",

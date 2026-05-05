@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import {
   LayoutDashboard,
   Users,
@@ -59,6 +60,7 @@ const studentNavItems: NavItem[] = [
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, role, signOut } = useAuth();
+  const { notificationCount } = useNotifications();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,6 +68,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  const handleNotificationClick = () => {
+    if (role === "student") {
+      navigate("/student/messages");
+    } else if (role === "supervisor") {
+      navigate("/supervisor/messages");
+    }
   };
 
   const navItems =
@@ -173,6 +183,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
+            {/* Notification Icon for Students and Supervisors */}
+            {(role === "student" || role === "supervisor") && (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={handleNotificationClick}
+                  title={`Notifications (${notificationCount})`}
+                >
+                  <Bell className="h-5 w-5" />
+                </Button>
+                {notificationCount > 0 && (
+                  <div className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-background shadow-lg">
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </div>
+                )}
+              </div>
+            )}
             <ThemeSwitcher />
             <div className="hidden sm:block text-right">
               <p className="text-sm font-medium">{user?.name}</p>

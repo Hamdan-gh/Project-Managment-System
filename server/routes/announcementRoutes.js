@@ -24,6 +24,42 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
+// Get unread announcements count
+router.get("/unread", auth, async (req, res) => {
+  try {
+    const count = await Announcement.countDocuments({
+      $or: [
+        { targetRole: 'all' },
+        { targetRole: req.user.role }
+      ],
+      'readBy.user': { $ne: req.user._id }
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
+// Mark announcement as read
+router.put("/:id/read", auth, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) return res.status(404).json({ msg: "Announcement not found" });
+
+    // Check if user already marked as read
+    const alreadyRead = announcement.readBy.some(read => read.user.toString() === req.user._id.toString());
+    
+    if (!alreadyRead) {
+      announcement.readBy.push({ user: req.user._id });
+      await announcement.save();
+    }
+    
+    res.json({ msg: "Announcement marked as read" });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
 // Get my announcements (for supervisors)
 router.get("/my", auth, async (req, res) => {
   try {

@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { Bell, Loader2 } from "lucide-react";
 
@@ -20,6 +21,7 @@ interface Announcement {
 
 export default function StudentAnnouncements() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -34,6 +36,19 @@ export default function StudentAnnouncements() {
     try {
       const { data } = await api.get('/announcements');
       setAnnouncements(data);
+      
+      // Mark all announcements as read when the page is viewed
+      for (const announcement of data) {
+        try {
+          await api.put(`/announcements/${announcement._id}/read`);
+        } catch (error) {
+          // Silently handle errors for marking as read
+          console.error("Error marking announcement as read:", error);
+        }
+      }
+      
+      // Refresh notification count after marking announcements as read
+      await refreshNotifications();
     } catch (error) {
       console.error("Error fetching announcements:", error);
       toast({

@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { api } from "@/services/api";
 import { Bell, Plus, Loader2, Megaphone } from "lucide-react";
 
@@ -28,6 +29,7 @@ interface Announcement {
 
 export default function Announcements() {
   const { user } = useAuth();
+  const { refreshNotifications } = useNotifications();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -49,6 +51,19 @@ export default function Announcements() {
     try {
       const { data } = await api.get('/announcements/my');
       setAnnouncements(data);
+      
+      // Mark all announcements as read when viewed (for supervisors viewing their own announcements)
+      for (const announcement of data) {
+        try {
+          await api.put(`/announcements/${announcement._id}/read`);
+        } catch (error) {
+          // Silently handle errors for marking as read
+          console.error("Error marking announcement as read:", error);
+        }
+      }
+      
+      // Refresh notification count after marking announcements as read
+      await refreshNotifications();
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -90,6 +105,8 @@ export default function Announcements() {
       setDialogOpen(false);
       resetForm();
       fetchData();
+      // Refresh notifications after creating announcement
+      await refreshNotifications();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -105,14 +122,6 @@ export default function Announcements() {
     setTitle("");
     setContent("");
     setTargetRole("all");
-  };
-
-  const toggleStudent = (studentId: string) => {
-    setSelectedStudents((prev) =>
-      prev.includes(studentId)
-        ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId]
-    );
   };
 
   return (
@@ -222,7 +231,7 @@ export default function Announcements() {
               <div className="space-y-4">
                 {announcements.map((announcement) => (
                   <div
-                    key={announcement.id}
+                    key={announcement._id}
                     className="p-4 rounded-lg bg-muted/50 border"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -232,8 +241,8 @@ export default function Announcements() {
                           {announcement.content}
                         </p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Posted {new Date(announcement.created_at).toLocaleDateString()} •{" "}
-                          {announcement.target_all ? "All students" : "Selected students"}
+                          Posted {new Date(announcement.createdAt).toLocaleDateString()} •{" "}
+                          Target: {announcement.targetRole === "all" ? "All users" : announcement.targetRole}
                         </p>
                       </div>
                     </div>
