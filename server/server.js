@@ -28,7 +28,12 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-  origin: true, // Allow all origins for now
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173', 
+    'https://project-management-frontend.vercel.app',
+    'https://*.vercel.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -76,49 +81,39 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/chapters", chapterRoutes);
 app.use("/api/users", userRoutes);
 
-// Log registered routes for debugging
-console.log('Registered API routes:');
-console.log('  - /api/auth');
-console.log('  - /api/proposals');
-console.log('  - /api/messages');
-console.log('  - /api/announcements');
-console.log('  - /api/chapters');
-console.log('  - /api/users');
-
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve static files from the React app (only in production)
-const distPath = path.join(__dirname, '../dist');
-console.log('Looking for dist folder at:', distPath);
+// API-only server - frontend is served separately by Vercel
+app.get('/', (req, res) => {
+  res.json({ 
+    message: "FYP System API Server", 
+    status: "running",
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      test: "/api/test",
+      auth: "/api/auth",
+      messages: "/api/messages",
+      announcements: "/api/announcements",
+      proposals: "/api/proposals",
+      chapters: "/api/chapters",
+      users: "/api/users"
+    }
+  });
+});
 
-// Check if dist folder exists and serve static files
-if (fs.existsSync(distPath)) {
-  console.log('✓ dist folder found, serving static files');
-  app.use(express.static(distPath));
-  
-  // Handle React routing - return index.html for all non-API routes
-  // This MUST be last so API routes are handled first
-  app.get('*', (req, res) => {
-    // Don't serve index.html for API routes
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ msg: 'API endpoint not found' });
-    }
-    
-    const indexPath = path.join(distPath, 'index.html');
-    res.sendFile(indexPath);
+// Handle 404 for unknown API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ msg: 'API endpoint not found' });
+});
+
+// Handle all other routes
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    msg: 'This is an API server. Frontend is served separately.',
+    api_base: '/api'
   });
-} else {
-  console.warn('⚠ dist folder not found at', distPath);
-  
-  // Fallback catch-all when dist doesn't exist
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ msg: 'API endpoint not found' });
-    }
-    res.status(404).send('Frontend not built. Please run: npm run build');
-  });
-}
+});
 
 const PORT = process.env.PORT || 1000;
 console.log('Environment PORT variable:', process.env.PORT);
