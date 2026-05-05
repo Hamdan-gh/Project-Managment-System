@@ -21,6 +21,19 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Ensure uploads directories exist
+const uploadsDir = path.join(__dirname, 'uploads');
+const voiceMessagesDir = path.join(uploadsDir, 'voice-messages');
+const avatarsDir = path.join(uploadsDir, 'avatars');
+const chaptersDir = path.join(uploadsDir, 'chapters');
+
+[uploadsDir, voiceMessagesDir, avatarsDir, chaptersDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    console.log('Creating directory:', dir);
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
 // Log all requests for debugging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);

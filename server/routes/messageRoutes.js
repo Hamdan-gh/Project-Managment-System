@@ -2,23 +2,36 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import Message from "../models/Message.js";
 import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Configure multer for voice message uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = 'uploads/voice-messages';
+    // Use absolute path relative to server directory
+    const uploadPath = path.join(__dirname, '..', 'uploads', 'voice-messages');
+    console.log('Upload path:', uploadPath);
+    
     if (!fs.existsSync(uploadPath)) {
+      console.log('Creating upload directory:', uploadPath);
       fs.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `voice-${uniqueSuffix}.webm`);
+    // Get file extension from mimetype
+    const ext = file.mimetype.split('/')[1] || 'webm';
+    const filename = `voice-${uniqueSuffix}.${ext}`;
+    console.log('Saving file as:', filename);
+    cb(null, filename);
   }
 });
 
@@ -28,6 +41,7 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit for voice messages
   },
   fileFilter: (req, file, cb) => {
+    console.log('File upload attempt:', file.mimetype, file.originalname);
     // Accept audio files
     if (file.mimetype.startsWith('audio/')) {
       cb(null, true);
@@ -75,17 +89,24 @@ router.post("/", auth, async (req, res) => {
 // Send voice message
 router.post("/voice", auth, upload.single('voice'), async (req, res) => {
   try {
+    console.log('Voice upload request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    
     if (!req.file) {
+      console.error('No file in request');
       return res.status(400).json({ msg: "No voice file uploaded" });
     }
 
     const { receiver, duration } = req.body;
     
     if (!receiver) {
+      console.error('No receiver specified');
       return res.status(400).json({ msg: "Receiver is required" });
     }
 
     const voiceUrl = `/uploads/voice-messages/${req.file.filename}`;
+    console.log('Voice URL:', voiceUrl);
     
     const message = await Message.create({
       sender: req.user._id,
@@ -99,8 +120,10 @@ router.post("/voice", auth, upload.single('voice'), async (req, res) => {
     await message.populate('sender', 'name email');
     await message.populate('receiver', 'name email');
     
+    console.log('Voice message created successfully:', message._id);
     res.json(message);
   } catch (error) {
+    console.error('Voice upload error:', error);
     // Clean up uploaded file if message creation fails
     if (req.file) {
       fs.unlink(req.file.path, (err) => {
