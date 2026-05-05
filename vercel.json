@@ -18,6 +18,10 @@
       }
     },
     {
+      "src": "/(logo\\.jpg|favicon\\.ico|placeholder\\.svg|robots\\.txt|_redirects)",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
