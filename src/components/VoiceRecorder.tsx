@@ -34,12 +34,18 @@ export function VoiceRecorder({ onSendVoice, disabled }: VoiceRecorderProps) {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
       if (audioRef.current) {
+        // Remove event listeners before cleanup
+        audioRef.current.onerror = null;
+        audioRef.current.onended = null;
+        audioRef.current.onplay = null;
+        audioRef.current.onpause = null;
+        audioRef.current.oncanplaythrough = null;
         audioRef.current.pause();
         audioRef.current.src = '';
+      }
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
       }
     };
   }, [audioUrl]);
@@ -167,6 +173,8 @@ export function VoiceRecorder({ onSendVoice, disabled }: VoiceRecorderProps) {
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
       
+      let hasError = false;
+      
       audio.onloadeddata = () => {
         console.log('Audio loaded, duration:', audio.duration);
       };
@@ -178,8 +186,12 @@ export function VoiceRecorder({ onSendVoice, disabled }: VoiceRecorderProps) {
       
       audio.onerror = (e) => {
         console.error('Audio playback error:', e);
+        hasError = true;
         setIsPlaying(false);
-        alert('Could not play audio. The recording might be corrupted.');
+        // Only show error if we're actually trying to play
+        if (isPlaying) {
+          alert('Could not play audio. The recording might be corrupted.');
+        }
       };
       
       audio.onplay = () => {
@@ -192,21 +204,20 @@ export function VoiceRecorder({ onSendVoice, disabled }: VoiceRecorderProps) {
         setIsPlaying(false);
       };
       
-      // Try to play
-      try {
-        await audio.play();
-      } catch (playError) {
-        console.error('Play failed:', playError);
-        // Try with user interaction
-        setIsPlaying(true);
-        setTimeout(() => {
-          audio.play().catch(e => {
-            console.error('Delayed play failed:', e);
+      // Wait for audio to be ready before playing
+      audio.oncanplaythrough = async () => {
+        if (!hasError && !isPlaying) {
+          try {
+            await audio.play();
+          } catch (playError) {
+            console.error('Play failed:', playError);
             setIsPlaying(false);
-            alert('Could not play audio. Browser may be blocking autoplay.');
-          });
-        }, 100);
-      }
+          }
+        }
+      };
+      
+      // Load the audio
+      audio.load();
       
     } catch (error) {
       console.error('Error in playRecording:', error);
@@ -227,6 +238,12 @@ export function VoiceRecorder({ onSendVoice, disabled }: VoiceRecorderProps) {
     
     // Clean up audio
     if (audioRef.current) {
+      // Remove event listeners first
+      audioRef.current.onerror = null;
+      audioRef.current.onended = null;
+      audioRef.current.onplay = null;
+      audioRef.current.onpause = null;
+      audioRef.current.oncanplaythrough = null;
       audioRef.current.pause();
       audioRef.current.src = '';
       audioRef.current = null;
