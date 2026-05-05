@@ -11,7 +11,7 @@ const router = express.Router();
 // Configure multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+    const uploadDir = path.join(process.cwd(), 'server', 'uploads', 'avatars');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -187,21 +187,27 @@ router.post("/avatar", auth, upload.single('avatar'), async (req, res) => {
     }
 
     // Delete old avatar if exists
-    if (user.avatarPath && fs.existsSync(user.avatarPath)) {
-      fs.unlinkSync(user.avatarPath);
-      console.log("Deleted old avatar:", user.avatarPath);
+    if (user.avatarPath) {
+      const oldAvatarFullPath = path.join(process.cwd(), 'server', user.avatarPath);
+      if (fs.existsSync(oldAvatarFullPath)) {
+        fs.unlinkSync(oldAvatarFullPath);
+        console.log("Deleted old avatar:", oldAvatarFullPath);
+      }
     }
 
+    // Save relative path instead of full path
+    const relativePath = `uploads/avatars/${req.file.filename}`;
+    
     // Update user with new avatar
-    user.avatarPath = req.file.path;
+    user.avatarPath = relativePath;
     user.avatarFileName = req.file.originalname;
     await user.save();
 
-    console.log("Avatar uploaded successfully:", req.file.path);
+    console.log("Avatar uploaded successfully:", relativePath);
 
     res.json({
       msg: "Avatar uploaded successfully",
-      avatarPath: req.file.path,
+      avatarPath: relativePath,
       avatarFileName: req.file.originalname
     });
   } catch (error) {
@@ -218,11 +224,19 @@ router.get("/avatar/:userId", async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    if (!user.avatarPath || !fs.existsSync(user.avatarPath)) {
+    if (!user.avatarPath) {
       return res.status(404).json({ msg: "Avatar not found" });
     }
 
-    res.sendFile(path.resolve(user.avatarPath));
+    // Construct full path from relative path
+    const fullPath = path.join(process.cwd(), 'server', user.avatarPath);
+    
+    if (!fs.existsSync(fullPath)) {
+      console.error("Avatar file not found:", fullPath);
+      return res.status(404).json({ msg: "Avatar file not found" });
+    }
+
+    res.sendFile(path.resolve(fullPath));
   } catch (error) {
     console.error("Error retrieving avatar:", error);
     res.status(500).json({ msg: error.message });
@@ -238,9 +252,12 @@ router.delete("/avatar", auth, async (req, res) => {
     }
 
     // Delete avatar file if exists
-    if (user.avatarPath && fs.existsSync(user.avatarPath)) {
-      fs.unlinkSync(user.avatarPath);
-      console.log("Deleted avatar:", user.avatarPath);
+    if (user.avatarPath) {
+      const fullPath = path.join(process.cwd(), 'server', user.avatarPath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+        console.log("Deleted avatar:", fullPath);
+      }
     }
 
     // Remove avatar from user record

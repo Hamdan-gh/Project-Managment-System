@@ -111,7 +111,7 @@ export default function Settings() {
 
       toast({
         title: "Success",
-        description: "Avatar uploaded successfully",
+        description: "Avatar uploaded successfully. Refreshing...",
       });
 
       // Reload page to update avatar everywhere
@@ -119,7 +119,7 @@ export default function Settings() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to upload avatar",
+        description: error.response?.data?.msg || error.message || "Failed to upload avatar",
         variant: "destructive",
       });
     } finally {
@@ -156,7 +156,9 @@ export default function Settings() {
     if (avatarPreview) return avatarPreview;
     // Only return URL if user has an avatar
     if (user?._id && user?.avatarPath) {
-      return `${API_URL}/users/avatar/${user._id}`;
+      // Remove /api from the end if present
+      const baseUrl = API_URL.replace(/\/api$/, '');
+      return `${baseUrl}/api/users/avatar/${user._id}`;
     }
     return undefined; // Return undefined to prevent image loading
   };

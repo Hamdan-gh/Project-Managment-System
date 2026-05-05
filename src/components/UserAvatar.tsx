@@ -16,7 +16,9 @@ export function UserAvatar({ user, className, fallbackClassName }: UserAvatarPro
   const getAvatarUrl = () => {
     // Only return URL if user has an avatar
     if (user?._id && user?.avatarPath) {
-      return `${API_URL}/users/avatar/${user._id}`;
+      // Remove /api from the end if present
+      const baseUrl = API_URL.replace(/\/api$/, '');
+      return `${baseUrl}/api/users/avatar/${user._id}`;
     }
     return undefined; // Return undefined instead of null to prevent image loading
   };
