@@ -361,16 +361,18 @@ export default function Messages() {
                             : "hover:bg-muted"
                         )}
                       >
-                        <UserAvatar 
-                          user={student}
-                          className="h-8 w-8 md:h-10 md:w-10"
-                          fallbackClassName={cn(
-                            "font-semibold text-sm md:text-base",
-                            selectedStudent?._id === student._id
-                              ? "bg-primary-foreground text-primary"
-                              : "bg-secondary text-secondary-foreground"
-                          )}
-                        />
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <UserAvatar 
+                            user={student}
+                            className="h-8 w-8 md:h-10 md:w-10"
+                            fallbackClassName={cn(
+                              "font-semibold text-sm md:text-base",
+                              selectedStudent?._id === student._id
+                                ? "bg-primary-foreground text-primary"
+                                : "bg-secondary text-secondary-foreground"
+                            )}
+                          />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate text-sm md:text-base">{student.name}</p>
                           <p className={cn(

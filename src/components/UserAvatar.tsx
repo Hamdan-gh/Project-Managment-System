@@ -1,16 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarDialog } from "@/components/AvatarDialog";
 
 interface UserAvatarProps {
   user?: {
     _id?: string;
     name?: string;
+    email?: string;
     avatarPath?: string;
   } | null;
   className?: string;
   fallbackClassName?: string;
+  clickable?: boolean;
 }
 
-export function UserAvatar({ user, className, fallbackClassName }: UserAvatarProps) {
+export function UserAvatar({ user, className, fallbackClassName, clickable = true }: UserAvatarProps) {
   const API_URL = import.meta.env.VITE_API_URL || 'https://project-management-backend-in20.onrender.com/api';
 
   const getAvatarUrl = () => {
@@ -25,7 +28,7 @@ export function UserAvatar({ user, className, fallbackClassName }: UserAvatarPro
 
   const avatarUrl = getAvatarUrl();
 
-  return (
+  const avatarElement = (
     <Avatar className={className}>
       {avatarUrl && (
         <AvatarImage 
@@ -42,4 +45,15 @@ export function UserAvatar({ user, className, fallbackClassName }: UserAvatarPro
       </AvatarFallback>
     </Avatar>
   );
+
+  // If clickable and user has avatar, wrap in AvatarDialog
+  if (clickable && user) {
+    return (
+      <AvatarDialog user={user}>
+        {avatarElement}
+      </AvatarDialog>
+    );
+  }
+
+  return avatarElement;
 }
