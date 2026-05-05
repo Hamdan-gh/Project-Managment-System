@@ -21,7 +21,19 @@ export function VoiceMessage({ voiceUrl, duration, isOwn, className }: VoiceMess
     console.log('VoiceMessage mounted:', { voiceUrl, duration, isOwn });
     
     // Construct full URL if needed
-    const fullUrl = voiceUrl.startsWith('http') ? voiceUrl : `http://localhost:1000${voiceUrl}`;
+    let fullUrl = voiceUrl;
+    if (!voiceUrl.startsWith('http')) {
+      // Get the base URL from environment variable or use relative path
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
+      if (apiBaseUrl) {
+        // Remove /api from the end if present
+        const baseUrl = apiBaseUrl.replace(/\/api$/, '');
+        fullUrl = `${baseUrl}${voiceUrl}`;
+      } else {
+        // Fallback to relative path for development
+        fullUrl = voiceUrl;
+      }
+    }
     console.log('Full audio URL:', fullUrl);
     
     const audio = new Audio(fullUrl);
