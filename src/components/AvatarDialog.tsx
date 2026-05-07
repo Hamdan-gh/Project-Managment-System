@@ -24,6 +24,12 @@ export function AvatarDialog({ user, children }: AvatarDialogProps) {
 
   const getAvatarUrl = () => {
     if (user?._id && user?.avatarPath) {
+      // If it's already a full URL (Cloudinary), return it directly
+      if (user.avatarPath.startsWith('http')) {
+        return user.avatarPath;
+      }
+      
+      // Otherwise, construct URL for backend endpoint (legacy support)
       const baseUrl = API_URL.replace(/\/api$/, '');
       return `${baseUrl}/api/users/avatar/${user._id}`;
     }
