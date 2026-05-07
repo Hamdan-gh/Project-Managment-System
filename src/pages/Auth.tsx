@@ -113,7 +113,7 @@ export default function Auth() {
                 className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 cursor-pointer"
               />
               <img 
-                src="/uds.jpg" 
+                src={getAssetUrl("uds.jpg")} 
                 alt="UDS Logo" 
                 className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 cursor-pointer"
               />
@@ -166,7 +166,7 @@ export default function Auth() {
                 className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl group-hover:ring-primary/40 transition-all duration-300 cursor-pointer"
               />
               <img 
-                src="/uds.jpg" 
+                src={getAssetUrl("uds.jpg")} 
                 alt="UDS Logo" 
                 className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl group-hover:ring-primary/40 transition-all duration-300 cursor-pointer"
               />

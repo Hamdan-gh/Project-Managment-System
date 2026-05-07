@@ -16,6 +16,7 @@ import {
   UserCog,
   ChevronRight,
   Settings,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ interface DashboardLayoutProps {
 
 const adminNavItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: "Analytics", href: "/admin/analytics", icon: <BarChart3 className="h-5 w-5" /> },
   { label: "Supervisors", href: "/admin/supervisors", icon: <UserCog className="h-5 w-5" /> },
   { label: "Students", href: "/admin/students", icon: <Users className="h-5 w-5" /> },
   { label: "Assignments", href: "/admin/assignments", icon: <UserPlus className="h-5 w-5" /> },

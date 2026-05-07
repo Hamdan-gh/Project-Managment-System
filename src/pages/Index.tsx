@@ -157,7 +157,7 @@ const Index = () => {
                 </div>
                 <div className="relative">
                   <img 
-                    src="/uds.jpg" 
+                    src={getAssetUrl("uds.jpg")} 
                     alt="UDS Logo" 
                     className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-500/20 shadow-lg"
                   />
@@ -240,12 +240,12 @@ const Index = () => {
                     className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-lg"
                   />
                   <img 
-                    src="/2.jpg" 
+                    src={getAssetUrl("2.jpg")} 
                     alt="Student 2" 
                     className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-lg"
                   />
                   <img 
-                    src="/3.jpg" 
+                    src={getAssetUrl("3.jpg")} 
                     alt="Student 3" 
                     className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-lg"
                   />
@@ -411,7 +411,7 @@ const Index = () => {
                           className="w-24 h-24 rounded-full object-cover ring-6 ring-primary/20 shadow-2xl"
                         />
                         <img 
-                          src="/uds.jpg" 
+                          src={getAssetUrl("uds.jpg")} 
                           alt="UDS Logo" 
                           className="w-24 h-24 rounded-full object-cover ring-6 ring-blue-500/20 shadow-2xl"
                         />

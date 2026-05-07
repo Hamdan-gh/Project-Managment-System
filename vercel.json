@@ -12,13 +12,20 @@
   ],
   "routes": [
     {
+      "src": "/(.*\\.(png|jpg|jpeg|gif|svg|ico|webp))",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      },
+      "dest": "/$1"
+    },
+    {
       "src": "/assets/(.*)",
       "headers": {
         "cache-control": "max-age=31536000, immutable"
       }
     },
     {
-      "src": "/(logo\\.jpg|favicon\\.ico|placeholder\\.svg|robots\\.txt|_redirects)",
+      "src": "/(robots\\.txt|_redirects)",
       "dest": "/$1"
     },
     {

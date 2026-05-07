@@ -13,6 +13,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import chapterRoutes from "./routes/chapterRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 dotenv.config();
 
@@ -104,6 +105,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/chapters", chapterRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -124,7 +126,8 @@ app.get('/', (req, res) => {
       announcements: "/api/announcements",
       proposals: "/api/proposals",
       chapters: "/api/chapters",
-      users: "/api/users"
+      users: "/api/users",
+      analytics: "/api/analytics"
     }
   });
 });
