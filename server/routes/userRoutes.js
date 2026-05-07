@@ -163,9 +163,19 @@ router.get("/stats", auth, async (req, res) => {
 router.post("/avatar", auth, upload.single('avatar'), async (req, res) => {
   try {
     console.log("Avatar upload request from user:", req.user._id);
+    console.log("Cloudinary config:", {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
+      api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing'
+    });
     
     if (!req.file) {
       return res.status(400).json({ msg: "No file uploaded" });
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Cloudinary credentials not configured');
+      return res.status(500).json({ msg: "Cloud storage not configured. Please contact administrator." });
     }
 
     const user = await User.findById(req.user._id);
@@ -173,11 +183,15 @@ router.post("/avatar", auth, upload.single('avatar'), async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
+    console.log('Starting Cloudinary upload...');
+
     // Delete old avatar from Cloudinary if exists
     if (user.avatarPath && user.avatarPath.includes('cloudinary')) {
       try {
         // Extract public_id from Cloudinary URL
-        const publicId = user.avatarPath.split('/').pop().split('.')[0];
+        const urlParts = user.avatarPath.split('/');
+        const publicIdWithExt = urlParts[urlParts.length - 1];
+        const publicId = publicIdWithExt.split('.')[0];
         await cloudinary.uploader.destroy(`avatars/${publicId}`);
         console.log("Deleted old avatar from Cloudinary");
       } catch (error) {
@@ -197,8 +211,13 @@ router.post("/avatar", auth, upload.single('avatar'), async (req, res) => {
           ]
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('Cloudinary upload success:', result.secure_url);
+            resolve(result);
+          }
         }
       );
       uploadStream.end(req.file.buffer);
@@ -220,7 +239,7 @@ router.post("/avatar", auth, upload.single('avatar'), async (req, res) => {
     });
   } catch (error) {
     console.error("Error uploading avatar:", error);
-    res.status(500).json({ msg: error.message });
+    res.status(500).json({ msg: error.message || "Failed to upload avatar" });
   }
 });
 

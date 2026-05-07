@@ -54,7 +54,7 @@ const testConnection = async () => {
 
 export const api = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: 30000, // Increased to 30 seconds for file uploads
   headers: {
     'Content-Type': 'application/json',
   }
