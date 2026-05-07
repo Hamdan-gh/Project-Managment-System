@@ -139,7 +139,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 1000;
+const PORT = process.env.PORT || 5000;
 console.log('Environment PORT variable:', process.env.PORT);
 console.log('Using PORT:', PORT);
 
