@@ -1,39 +1,13 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
 import Message from "../models/Message.js";
 import auth from "../middleware/auth.js";
+import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Configure multer for voice message uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Use absolute path relative to server directory
-    const uploadPath = path.join(__dirname, '..', 'uploads', 'voice-messages');
-    console.log('Upload path:', uploadPath);
-    
-    if (!fs.existsSync(uploadPath)) {
-      console.log('Creating upload directory:', uploadPath);
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    // Get file extension from mimetype
-    const ext = file.mimetype.split('/')[1] || 'webm';
-    const filename = `voice-${uniqueSuffix}.${ext}`;
-    console.log('Saving file as:', filename);
-    cb(null, filename);
-  }
-});
+// Configure multer for memory storage (we'll upload to Cloudinary)
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -90,7 +64,7 @@ router.post("/", auth, async (req, res) => {
 router.post("/voice", auth, upload.single('voice'), async (req, res) => {
   try {
     console.log('Voice upload request received');
-    console.log('File:', req.file);
+    console.log('File:', req.file ? `${req.file.size} bytes, ${req.file.mimetype}` : 'No file');
     console.log('Body:', req.body);
     
     if (!req.file) {
@@ -105,7 +79,37 @@ router.post("/voice", auth, upload.single('voice'), async (req, res) => {
       return res.status(400).json({ msg: "Receiver is required" });
     }
 
-    const voiceUrl = `/uploads/voice-messages/${req.file.filename}`;
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Cloudinary credentials not configured');
+      return res.status(500).json({ msg: "Cloud storage not configured. Please contact administrator." });
+    }
+
+    console.log('Starting Cloudinary upload for voice message...');
+
+    // Upload to Cloudinary
+    const uploadPromise = new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'voice-messages',
+          resource_type: 'video', // Cloudinary uses 'video' for audio files
+          format: 'mp3', // Convert to mp3 for better compatibility
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('Cloudinary upload success:', result.secure_url);
+            resolve(result);
+          }
+        }
+      );
+      uploadStream.end(req.file.buffer);
+    });
+
+    const result = await uploadPromise;
+    const voiceUrl = result.secure_url;
+    
     console.log('Voice URL:', voiceUrl);
     
     const message = await Message.create({
@@ -124,13 +128,7 @@ router.post("/voice", auth, upload.single('voice'), async (req, res) => {
     res.json(message);
   } catch (error) {
     console.error('Voice upload error:', error);
-    // Clean up uploaded file if message creation fails
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting file:', err);
-      });
-    }
-    res.status(500).json({ msg: error.message });
+    res.status(500).json({ msg: error.message || "Failed to upload voice message" });
   }
 });
 
