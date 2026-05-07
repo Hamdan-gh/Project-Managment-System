@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Loader2, Shield, Users, FileText, MessageSquare } from "lucide-react";
 import { z } from "zod";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { getAssetUrl } from "@/lib/utils";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your email or matric number"),
@@ -107,7 +108,7 @@ export default function Auth() {
           <div className="flex items-center gap-4 mb-12">
             <Link to="/" className="flex items-center gap-3 group">
               <img 
-                src="/logo.jpg" 
+                src={getAssetUrl("logo.jpg")} 
                 alt="CSS Logo" 
                 className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 cursor-pointer"
               />
@@ -160,7 +161,7 @@ export default function Auth() {
           <div className="lg:hidden flex flex-col items-center mb-10">
             <Link to="/" className="flex items-center gap-3 mb-4 group">
               <img 
-                src="/logo.jpg" 
+                src={getAssetUrl("logo.jpg")} 
                 alt="CSS Logo" 
                 className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl group-hover:ring-primary/40 transition-all duration-300 cursor-pointer"
               />

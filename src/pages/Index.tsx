@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getAssetUrl } from "@/lib/utils";
 import { 
   Users, 
   FileText, 
@@ -148,7 +149,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <img 
-                    src="/logo.jpg" 
+                    src={getAssetUrl("logo.jpg")} 
                     alt="CSS Logo" 
                     className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20 shadow-lg"
                   />
@@ -234,7 +235,7 @@ const Index = () => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex -space-x-2">
                   <img 
-                    src="/1.png" 
+                    src={getAssetUrl("1.png")} 
                     alt="Student 1" 
                     className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-lg"
                   />
@@ -405,7 +406,7 @@ const Index = () => {
                     <div className="relative mb-8">
                       <div className="flex items-center justify-center gap-4">
                         <img 
-                          src="/logo.jpg" 
+                          src={getAssetUrl("logo.jpg")} 
                           alt="CSS Logo" 
                           className="w-24 h-24 rounded-full object-cover ring-6 ring-primary/20 shadow-2xl"
                         />
@@ -506,8 +507,8 @@ const Index = () => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <img src="/logo.jpg" alt="CSS Logo" className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20 dark:ring-primary/40" />
-                  <img src="/uds.jpg" alt="UDS Logo" className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500/20 dark:ring-blue-500/40" />
+                  <img src={getAssetUrl("logo.jpg")} alt="CSS Logo" className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20 dark:ring-primary/40" />
+                  <img src={getAssetUrl("uds.jpg")} alt="UDS Logo" className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500/20 dark:ring-blue-500/40" />
                 </div>
                 <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 dark:from-primary dark:to-primary/80 bg-clip-text text-transparent dark:bg-none dark:text-white">
                   Project Management System

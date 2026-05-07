@@ -108,6 +108,9 @@ app.use("/api/users", userRoutes);
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static assets (images, logos, etc.)
+app.use('/assets', express.static(path.join(__dirname, 'public')));
+
 // API-only server - frontend is served separately by Vercel
 app.get('/', (req, res) => {
   res.json({ 

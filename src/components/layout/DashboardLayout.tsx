@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { getAssetUrl } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
@@ -109,7 +110,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Logo */}
           <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-6">
             <img 
-              src="/logo.jpg"
+              src={getAssetUrl("logo.jpg")}
               alt="CSS UDS Logo" 
               className="h-12 w-12 rounded-full object-cover ring-2 ring-sidebar-foreground/20"
             />
