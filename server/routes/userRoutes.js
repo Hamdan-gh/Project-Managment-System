@@ -115,7 +115,54 @@ router.put("/:studentId/supervisor/:supervisorId", auth, async (req, res) => {
   }
 });
 
-// Delete user
+// Delete avatar - MUST come before DELETE /:id to avoid route conflict
+router.delete("/avatar", auth, async (req, res) => {
+  try {
+    console.log("=== DELETE AVATAR REQUEST ===");
+    console.log("User from auth middleware:", req.user?._id);
+    console.log("User role:", req.user?.role);
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      console.error("User not found in database:", req.user._id);
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    console.log("User found:", user._id);
+    console.log("Current avatarPath:", user.avatarPath);
+
+    // Delete avatar from Cloudinary if exists
+    if (user.avatarPath && user.avatarPath.includes('cloudinary')) {
+      try {
+        // Extract public_id from Cloudinary URL
+        const urlParts = user.avatarPath.split('/');
+        const publicIdWithExt = urlParts[urlParts.length - 1];
+        const publicId = publicIdWithExt.split('.')[0];
+        const fullPublicId = `avatars/${publicId}`;
+        
+        console.log("Attempting to delete from Cloudinary:", fullPublicId);
+        const cloudinaryResult = await cloudinary.uploader.destroy(fullPublicId);
+        console.log("Cloudinary delete result:", cloudinaryResult);
+      } catch (error) {
+        console.error("Error deleting avatar from Cloudinary:", error);
+        // Continue even if Cloudinary delete fails
+      }
+    }
+
+    // Remove avatar from user record
+    user.avatarPath = undefined;
+    user.avatarFileName = undefined;
+    await user.save();
+
+    console.log("Avatar deleted successfully from database");
+    res.json({ msg: "Avatar deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting avatar:", error);
+    res.status(500).json({ msg: error.message });
+  }
+});
+
+// Delete user (admin only)
 router.delete("/:id", auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ msg: "Access denied" });
@@ -264,37 +311,6 @@ router.get("/avatar/:userId", async (req, res) => {
     return res.status(404).json({ msg: "Avatar not found" });
   } catch (error) {
     console.error("Error retrieving avatar:", error);
-    res.status(500).json({ msg: error.message });
-  }
-});
-
-// Delete avatar
-router.delete("/avatar", auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-
-    // Delete avatar from Cloudinary if exists
-    if (user.avatarPath && user.avatarPath.includes('cloudinary')) {
-      try {
-        const publicId = user.avatarPath.split('/').pop().split('.')[0];
-        await cloudinary.uploader.destroy(`avatars/${publicId}`);
-        console.log("Deleted avatar from Cloudinary");
-      } catch (error) {
-        console.error("Error deleting avatar from Cloudinary:", error);
-      }
-    }
-
-    // Remove avatar from user record
-    user.avatarPath = undefined;
-    user.avatarFileName = undefined;
-    await user.save();
-
-    res.json({ msg: "Avatar deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting avatar:", error);
     res.status(500).json({ msg: error.message });
   }
 });

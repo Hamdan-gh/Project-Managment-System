@@ -20,21 +20,9 @@ export function VoiceMessage({ voiceUrl, duration, isOwn, className }: VoiceMess
   useEffect(() => {
     console.log('VoiceMessage mounted:', { voiceUrl, duration, isOwn });
     
-    // Construct full URL if needed
-    let fullUrl = voiceUrl;
-    if (!voiceUrl.startsWith('http')) {
-      // Get the base URL from environment variable or use relative path
-      const apiBaseUrl = import.meta.env.VITE_API_URL;
-      if (apiBaseUrl) {
-        // Remove /api from the end if present
-        const baseUrl = apiBaseUrl.replace(/\/api$/, '');
-        fullUrl = `${baseUrl}${voiceUrl}`;
-      } else {
-        // Fallback to relative path for development
-        fullUrl = voiceUrl;
-      }
-    }
-    console.log('Full audio URL:', fullUrl);
+    // Use the voiceUrl directly - it's already a full Cloudinary URL
+    const fullUrl = voiceUrl;
+    console.log('Audio URL:', fullUrl);
     
     const audio = new Audio(fullUrl);
     audioRef.current = audio;
@@ -56,8 +44,18 @@ export function VoiceMessage({ voiceUrl, duration, isOwn, className }: VoiceMess
     };
 
     audio.onerror = (e) => {
-      console.error('Audio error:', e);
-      setError('Could not load audio');
+      console.error('Audio error event:', e);
+      console.error('Audio error details:', {
+        error: audio.error,
+        networkState: audio.networkState,
+        readyState: audio.readyState,
+        src: audio.src
+      });
+      // Only show error if user tried to play and it failed
+      // Don't show error on initial load
+      if (isPlaying) {
+        setError('Could not load audio');
+      }
       setIsPlaying(false);
     };
 

@@ -12,6 +12,16 @@ import { api } from "@/services/api";
 import { Lock, Eye, EyeOff, Upload, User as UserIcon, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(6, "Password must be at least 6 characters"),
@@ -33,6 +43,7 @@ export default function Settings() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'https://project-management-backend-in20.onrender.com/api';
@@ -127,24 +138,55 @@ export default function Settings() {
     }
   };
 
-  const handleDeleteAvatar = async () => {
+  const confirmDeleteAvatar = async () => {
+    setShowDeleteDialog(false);
     setIsUploadingAvatar(true);
+    
     try {
-      await api.delete('/users/avatar');
+      console.log('Attempting to delete avatar...');
+      console.log('User ID:', user?._id);
+      console.log('Current avatarPath:', user?.avatarPath);
+      
+      // Check if token exists
+      const token = localStorage.getItem('token');
+      console.log('Token exists:', !!token);
+      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
+      
+      const response = await api.delete('/users/avatar');
+      console.log('Delete avatar response:', response.data);
 
       setAvatarPreview(null);
 
       toast({
         title: "Success",
-        description: "Avatar deleted successfully",
+        description: "Avatar deleted successfully. Refreshing...",
       });
 
       // Reload page to update avatar everywhere
       setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
+      console.error('Delete avatar error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+      
+      let errorMessage = "Failed to delete avatar";
+      
+      if (error.response?.status === 403) {
+        errorMessage = "Access denied. Please try logging out and logging back in.";
+      } else if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please log in again.";
+      } else if (error.response?.data?.msg) {
+        errorMessage = error.response.data.msg;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to delete avatar",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -172,6 +214,28 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Profile Picture?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your profile picture? This action cannot be undone.
+              You can always upload a new picture later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteAvatar}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
@@ -222,7 +286,7 @@ export default function Settings() {
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={handleDeleteAvatar}
+                    onClick={() => setShowDeleteDialog(true)}
                     disabled={isUploadingAvatar}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />

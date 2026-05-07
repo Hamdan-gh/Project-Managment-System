@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,11 +105,18 @@ export default function Auth() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-primary-foreground">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-12">
-            <img 
-              src="/logo.jpg" 
-              alt="CSS UDS Logo" 
-              className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl"
-            />
+            <Link to="/" className="flex items-center gap-3 group">
+              <img 
+                src="/logo.jpg" 
+                alt="CSS Logo" 
+                className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 cursor-pointer"
+              />
+              <img 
+                src="/uds.jpg" 
+                alt="UDS Logo" 
+                className="h-20 w-20 rounded-full object-cover ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 cursor-pointer"
+              />
+            </Link>
             <div>
               <h1 className="text-3xl font-bold">CSS FYP</h1>
               <p className="text-primary-foreground/80 text-sm">Project Supervision System</p>
@@ -151,11 +158,18 @@ export default function Auth() {
         <div className="w-full max-w-md animate-slide-up">
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-10">
-            <img 
-              src="/logo.jpg" 
-              alt="CSS UDS Logo" 
-              className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl mb-4"
-            />
+            <Link to="/" className="flex items-center gap-3 mb-4 group">
+              <img 
+                src="/logo.jpg" 
+                alt="CSS Logo" 
+                className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl group-hover:ring-primary/40 transition-all duration-300 cursor-pointer"
+              />
+              <img 
+                src="/uds.jpg" 
+                alt="UDS Logo" 
+                className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20 shadow-xl group-hover:ring-primary/40 transition-all duration-300 cursor-pointer"
+              />
+            </Link>
             <h1 className="text-2xl font-bold text-foreground">CSS FYP Manager</h1>
             <p className="text-muted-foreground text-sm">Project Supervision System</p>
           </div>
