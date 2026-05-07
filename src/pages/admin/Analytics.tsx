@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { api } from "@/services/api";
 import { 
   TrendingUp, 
@@ -91,6 +92,7 @@ const CHART_COLORS = [
 ];
 
 export default function Analytics() {
+  // Initialize with empty arrays to prevent rendering errors
   const [studentAnalytics, setStudentAnalytics] = useState<StudentAnalytics[]>([]);
   const [departmentStats, setDepartmentStats] = useState<DepartmentStats[]>([]);
   const [supervisorPerformance, setSupervisorPerformance] = useState<SupervisorPerformance[]>([]);
@@ -98,37 +100,54 @@ export default function Analytics() {
   const [selectedTimeRange, setSelectedTimeRange] = useState("6months");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   
-  // Chart data states
+  // Chart data states - initialize with empty arrays
   const [progressDistributionData, setProgressDistributionData] = useState<any[]>([]);
   const [engagementTrendData, setEngagementTrendData] = useState<any[]>([]);
   const [riskFactorsData, setRiskFactorsData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchAnalyticsData();
+    // Add a small delay to ensure component is mounted
+    const timer = setTimeout(() => {
+      fetchAnalyticsData();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [selectedTimeRange, selectedDepartment]);
 
   const fetchAnalyticsData = async () => {
     try {
       setIsLoading(true);
       
-      // Fetch student analytics
-      const { data: studentsData } = await api.get('/analytics/student-analytics');
-      setStudentAnalytics(studentsData);
-      
-      // Fetch department statistics
-      const { data: departmentsData } = await api.get('/analytics/department-stats');
-      setDepartmentStats(departmentsData);
-      
-      // Fetch supervisor performance
-      const { data: supervisorsData } = await api.get('/analytics/supervisor-performance');
-      setSupervisorPerformance(supervisorsData);
-      
-      // Fetch chart data
-      await fetchChartData();
+      // Try to fetch from new analytics endpoints, but fallback gracefully
+      try {
+        // Fetch student analytics
+        const { data: studentsData } = await api.get('/analytics/student-analytics');
+        setStudentAnalytics(studentsData);
+        
+        // Fetch department statistics
+        const { data: departmentsData } = await api.get('/analytics/department-stats');
+        setDepartmentStats(departmentsData);
+        
+        // Fetch supervisor performance
+        const { data: supervisorsData } = await api.get('/analytics/supervisor-performance');
+        setSupervisorPerformance(supervisorsData);
+        
+        // Fetch chart data
+        await fetchChartData();
+        
+        console.log("Analytics data loaded successfully from API");
+      } catch (apiError) {
+        console.warn("Analytics API not available, using mock data:", apiError);
+        // Fallback to mock data if new API endpoints are not available
+        generateMockStudentAnalytics();
+        generateMockDepartmentStats();
+        generateMockSupervisorPerformance();
+        generateMockChartData();
+      }
       
     } catch (error) {
-      console.error("Error fetching analytics data:", error);
-      // Fallback to mock data if API fails
+      console.error("Error in fetchAnalyticsData:", error);
+      // Final fallback to ensure component doesn't crash
       generateMockStudentAnalytics();
       generateMockDepartmentStats();
       generateMockSupervisorPerformance();
@@ -140,13 +159,22 @@ export default function Analytics() {
 
   const fetchChartData = async () => {
     try {
-      // Fetch progress distribution
-      const { data: progressDist } = await api.get('/analytics/chart-data/progress-distribution');
-      setProgressDistributionData(progressDist);
-      
-      // Fetch engagement trends
-      const { data: engagementTrends } = await api.get('/analytics/chart-data/engagement-trends');
-      setEngagementTrendData(engagementTrends);
+      // Try to fetch from new analytics endpoints
+      try {
+        // Fetch progress distribution
+        const { data: progressDist } = await api.get('/analytics/chart-data/progress-distribution');
+        setProgressDistributionData(progressDist);
+        
+        // Fetch engagement trends
+        const { data: engagementTrends } = await api.get('/analytics/chart-data/engagement-trends');
+        setEngagementTrendData(engagementTrends);
+        
+        console.log("Chart data loaded successfully from API");
+      } catch (apiError) {
+        console.warn("Chart data API not available, using mock data:", apiError);
+        // Fallback to mock data
+        generateMockChartData();
+      }
       
       // Generate risk factors data (this could be enhanced with real API data)
       setRiskFactorsData([
@@ -197,7 +225,7 @@ export default function Analytics() {
         supervisor: "Dr. Smith",
         progress: 85,
         riskLevel: "low",
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2),
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
         proposalStatus: "approved",
         chaptersSubmitted: 4,
         chaptersApproved: 3,
@@ -212,7 +240,7 @@ export default function Analytics() {
         supervisor: "Dr. Johnson",
         progress: 45,
         riskLevel: "high",
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
         proposalStatus: "approved",
         chaptersSubmitted: 2,
         chaptersApproved: 1,
@@ -227,13 +255,43 @@ export default function Analytics() {
         supervisor: "Dr. Davis",
         progress: 72,
         riskLevel: "medium",
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 12),
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
         proposalStatus: "approved",
         chaptersSubmitted: 3,
         chaptersApproved: 2,
         messagesExchanged: 28,
         averageResponseTime: 12,
         engagementScore: 68
+      },
+      {
+        id: "4",
+        name: "Sarah Davis",
+        matricNumber: "CSC/2021/004",
+        supervisor: "Dr. Wilson",
+        progress: 90,
+        riskLevel: "low",
+        lastActivity: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        proposalStatus: "approved",
+        chaptersSubmitted: 5,
+        chaptersApproved: 5,
+        messagesExchanged: 67,
+        averageResponseTime: 4,
+        engagementScore: 95
+      },
+      {
+        id: "5",
+        name: "Ahmed Hassan",
+        matricNumber: "CSC/2021/005",
+        supervisor: "Dr. Smith",
+        progress: 25,
+        riskLevel: "high",
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
+        proposalStatus: "pending",
+        chaptersSubmitted: 1,
+        chaptersApproved: 0,
+        messagesExchanged: 3,
+        averageResponseTime: 48,
+        engagementScore: 15
       }
     ];
     setStudentAnalytics(mockData);
@@ -308,9 +366,29 @@ export default function Analytics() {
     }
   };
 
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return 'N/A';
+    
+    try {
+      // Handle different date formats
+      const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      
+      return date.toLocaleDateString();
+    } catch (error) {
+      console.warn('Error formatting date:', dateValue, error);
+      return 'N/A';
+    }
+  };
+
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
+    <ErrorBoundary>
+      <DashboardLayout>
+        <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -425,7 +503,7 @@ export default function Analytics() {
                     <div className="h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
-                  ) : (
+                  ) : progressDistributionData && progressDistributionData.length > 0 ? (
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <RechartsPieChart>
@@ -445,6 +523,10 @@ export default function Analytics() {
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     </div>
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      No data available
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -463,7 +545,7 @@ export default function Analytics() {
                     <div className="h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
-                  ) : (
+                  ) : engagementTrendData && engagementTrendData.length > 0 ? (
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={engagementTrendData}>
@@ -488,6 +570,10 @@ export default function Analytics() {
                           />
                         </LineChart>
                       </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      No data available
                     </div>
                   )}
                 </CardContent>
@@ -518,50 +604,64 @@ export default function Analytics() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {studentAnalytics.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{student.name}</div>
-                            <div className="text-sm text-muted-foreground">{student.matricNumber}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <ProgressRing progress={student.progress} size={40}>
-                              <span className="text-xs font-medium">{student.progress}%</span>
-                            </ProgressRing>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getRiskColor(student.riskLevel)}>
-                            {student.riskLevel}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="font-medium">{student.engagementScore}%</div>
-                            <div className="text-muted-foreground">{student.messagesExchanged} messages</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="font-medium">{student.chaptersApproved}/{student.chaptersSubmitted}</div>
-                            <div className="text-muted-foreground">approved</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-muted-foreground">
-                            {student.lastActivity.toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto" />
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : studentAnalytics && studentAnalytics.length > 0 ? (
+                      studentAnalytics.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{student.name || 'Unknown'}</div>
+                              <div className="text-sm text-muted-foreground">{student.matricNumber || 'N/A'}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <ProgressRing progress={student.progress || 0} size={40}>
+                                <span className="text-xs font-medium">{student.progress || 0}%</span>
+                              </ProgressRing>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getRiskColor(student.riskLevel || 'low')}>
+                              {student.riskLevel || 'low'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div className="font-medium">{student.engagementScore || 0}%</div>
+                              <div className="text-muted-foreground">{student.messagesExchanged || 0} messages</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div className="font-medium">{student.chaptersApproved || 0}/{student.chaptersSubmitted || 0}</div>
+                              <div className="text-muted-foreground">approved</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-muted-foreground">
+                              {formatDate(student.lastActivity)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No student data available
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -590,44 +690,52 @@ export default function Analytics() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {supervisorPerformance.map((supervisor) => (
-                      <TableRow key={supervisor.id}>
-                        <TableCell className="font-medium">{supervisor.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{supervisor.studentsCount} students</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 bg-muted rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${supervisor.averageProgress}%` }}
-                              />
+                    {supervisorPerformance && supervisorPerformance.length > 0 ? (
+                      supervisorPerformance.map((supervisor) => (
+                        <TableRow key={supervisor.id}>
+                          <TableCell className="font-medium">{supervisor.name || 'Unknown'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{supervisor.studentsCount || 0} students</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-muted rounded-full h-2">
+                                <div 
+                                  className="bg-blue-600 h-2 rounded-full"
+                                  style={{ width: `${supervisor.averageProgress || 0}%` }}
+                                />
+                              </div>
+                              <span className="text-sm">{supervisor.averageProgress || 0}%</span>
                             </div>
-                            <span className="text-sm">{supervisor.averageProgress}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">{supervisor.responseTime}h</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm font-medium">{supervisor.satisfactionScore}</span>
-                            <span className="text-xs text-muted-foreground">/5.0</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={supervisor.completionRate > 80 ? "default" : "destructive"}
-                          >
-                            {supervisor.completionRate}%
-                          </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-sm">{supervisor.responseTime || 0}h</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm font-medium">{supervisor.satisfactionScore || 0}</span>
+                              <span className="text-xs text-muted-foreground">/5.0</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={(supervisor.completionRate || 0) > 80 ? "default" : "destructive"}
+                            >
+                              {supervisor.completionRate || 0}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No supervisor data available
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -665,28 +773,34 @@ export default function Analytics() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {departmentStats.map((dept, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{dept.department}</h4>
-                          <Badge variant="outline">{dept.totalStudents} students</Badge>
+                    {departmentStats && departmentStats.length > 0 ? (
+                      departmentStats.map((dept, index) => (
+                        <div key={index} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{dept.department || 'Unknown Department'}</h4>
+                            <Badge variant="outline">{dept.totalStudents || 0} students</Badge>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-muted-foreground">Completion</div>
+                              <div className="font-medium">{dept.completionRate || 0}%</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Progress</div>
+                              <div className="font-medium">{dept.averageProgress || 0}%</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">At Risk</div>
+                              <div className="font-medium text-red-600">{dept.riskStudents || 0}</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <div className="text-muted-foreground">Completion</div>
-                            <div className="font-medium">{dept.completionRate}%</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Progress</div>
-                            <div className="font-medium">{dept.averageProgress}%</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">At Risk</div>
-                            <div className="font-medium text-red-600">{dept.riskStudents}</div>
-                          </div>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No department data available
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -768,5 +882,6 @@ export default function Analytics() {
         </Tabs>
       </div>
     </DashboardLayout>
+    </ErrorBoundary>
   );
 }
