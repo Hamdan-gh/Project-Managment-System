@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { api } from "@/services/api";
+import { exportToCSV, exportToTXT, exportToJSON, ExportData } from "@/utils/exportUtils";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -28,7 +30,8 @@ import {
   MessageSquare,
   FileText,
   Award,
-  Loader2
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -106,52 +109,93 @@ export default function Analytics() {
   const [riskFactorsData, setRiskFactorsData] = useState<any[]>([]);
 
   useEffect(() => {
-    // Add a small delay to ensure component is mounted
-    const timer = setTimeout(() => {
-      fetchAnalyticsData();
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    // Remove the artificial delay and fetch data immediately
+    fetchAnalyticsData();
   }, [selectedTimeRange, selectedDepartment]);
+
+  // Add a separate effect for initial load optimization
+  useEffect(() => {
+    // Preload critical data first, then load secondary data
+    const loadCriticalData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Load essential data first (faster mock data)
+        generateMockStudentAnalytics();
+        generateMockDepartmentStats();
+        generateMockSupervisorPerformance();
+        generateMockChartData();
+        
+        // Set loading to false for immediate display
+        setIsLoading(false);
+        
+        // Then try to fetch real data in the background
+        setTimeout(() => {
+          fetchAnalyticsData();
+        }, 500);
+        
+      } catch (error) {
+        console.error("Error in initial load:", error);
+        setIsLoading(false);
+      }
+    };
+
+    loadCriticalData();
+  }, []); // Only run once on mount
 
   const fetchAnalyticsData = async () => {
     try {
-      setIsLoading(true);
+      // Don't set loading to true if we already have data (for background updates)
+      const hasExistingData = studentAnalytics.length > 0 || departmentStats.length > 0;
+      if (!hasExistingData) {
+        setIsLoading(true);
+      }
       
       // Try to fetch from new analytics endpoints, but fallback gracefully
       try {
-        // Fetch student analytics
-        const { data: studentsData } = await api.get('/analytics/student-analytics');
-        setStudentAnalytics(studentsData);
-        
-        // Fetch department statistics
-        const { data: departmentsData } = await api.get('/analytics/department-stats');
-        setDepartmentStats(departmentsData);
-        
-        // Fetch supervisor performance
-        const { data: supervisorsData } = await api.get('/analytics/supervisor-performance');
-        setSupervisorPerformance(supervisorsData);
-        
-        // Fetch chart data
+        // Use Promise.allSettled for parallel requests that don't block each other
+        const [studentsResult, departmentsResult, supervisorsResult] = await Promise.allSettled([
+          api.get('/analytics/student-analytics'),
+          api.get('/analytics/department-stats'),
+          api.get('/analytics/supervisor-performance')
+        ]);
+
+        // Process successful results
+        if (studentsResult.status === 'fulfilled') {
+          setStudentAnalytics(studentsResult.value.data);
+        }
+        if (departmentsResult.status === 'fulfilled') {
+          setDepartmentStats(departmentsResult.value.data);
+        }
+        if (supervisorsResult.status === 'fulfilled') {
+          setSupervisorPerformance(supervisorsResult.value.data);
+        }
+
+        // Fetch chart data in parallel
         await fetchChartData();
         
         console.log("Analytics data loaded successfully from API");
       } catch (apiError) {
         console.warn("Analytics API not available, using mock data:", apiError);
-        // Fallback to mock data if new API endpoints are not available
-        generateMockStudentAnalytics();
-        generateMockDepartmentStats();
-        generateMockSupervisorPerformance();
-        generateMockChartData();
+        
+        // Only generate mock data if we don't already have data
+        if (!hasExistingData) {
+          generateMockStudentAnalytics();
+          generateMockDepartmentStats();
+          generateMockSupervisorPerformance();
+          generateMockChartData();
+        }
       }
       
     } catch (error) {
       console.error("Error in fetchAnalyticsData:", error);
       // Final fallback to ensure component doesn't crash
-      generateMockStudentAnalytics();
-      generateMockDepartmentStats();
-      generateMockSupervisorPerformance();
-      generateMockChartData();
+      if (studentAnalytics.length === 0) {
+        generateMockStudentAnalytics();
+        generateMockDepartmentStats();
+        generateMockSupervisorPerformance();
+        generateMockChartData();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -161,13 +205,19 @@ export default function Analytics() {
     try {
       // Try to fetch from new analytics endpoints
       try {
-        // Fetch progress distribution
-        const { data: progressDist } = await api.get('/analytics/chart-data/progress-distribution');
-        setProgressDistributionData(progressDist);
-        
-        // Fetch engagement trends
-        const { data: engagementTrends } = await api.get('/analytics/chart-data/engagement-trends');
-        setEngagementTrendData(engagementTrends);
+        // Use Promise.allSettled for parallel chart data requests
+        const [progressResult, engagementResult] = await Promise.allSettled([
+          api.get('/analytics/chart-data/progress-distribution'),
+          api.get('/analytics/chart-data/engagement-trends')
+        ]);
+
+        // Process successful results
+        if (progressResult.status === 'fulfilled') {
+          setProgressDistributionData(progressResult.value.data);
+        }
+        if (engagementResult.status === 'fulfilled') {
+          setEngagementTrendData(engagementResult.value.data);
+        }
         
         console.log("Chart data loaded successfully from API");
       } catch (apiError) {
@@ -385,6 +435,46 @@ export default function Analytics() {
     }
   };
 
+  // Export functionality
+  const handleExport = (format: 'csv' | 'txt' | 'json') => {
+    const exportData: ExportData = {
+      students: studentAnalytics,
+      departments: departmentStats,
+      supervisors: supervisorPerformance,
+      summary: {
+        totalStudents: studentAnalytics.length,
+        totalDepartments: departmentStats.length,
+        totalSupervisors: supervisorPerformance.length,
+        averageProgress: studentAnalytics.length > 0 
+          ? Math.round(studentAnalytics.reduce((acc, s) => acc + (s.progress || 0), 0) / studentAnalytics.length)
+          : 0,
+        highRiskStudents: studentAnalytics.filter(s => s.riskLevel === 'high').length,
+        averageEngagement: studentAnalytics.length > 0
+          ? Math.round(studentAnalytics.reduce((acc, s) => acc + (s.engagementScore || 0), 0) / studentAnalytics.length)
+          : 0
+      },
+      metadata: {
+        generatedAt: new Date().toLocaleString(),
+        generatedBy: 'Admin Dashboard',
+        reportType: 'Analytics Report',
+        timeRange: selectedTimeRange,
+        department: selectedDepartment === 'all' ? 'All Departments' : selectedDepartment
+      }
+    };
+
+    switch (format) {
+      case 'csv':
+        exportToCSV(exportData);
+        break;
+      case 'txt':
+        exportToTXT(exportData);
+        break;
+      case 'json':
+        exportToJSON(exportData);
+        break;
+    }
+  };
+
   return (
     <ErrorBoundary>
       <DashboardLayout>
@@ -424,6 +514,29 @@ export default function Analytics() {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Report
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('txt')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as Text Report
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('json')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

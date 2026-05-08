@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { api } from "@/services/api";
+import { exportToCSV, exportToTXT, exportToJSON, ExportData } from "@/utils/exportUtils";
 import { 
   Users, 
   UserCog, 
@@ -32,7 +34,8 @@ import {
   Download,
   Filter,
   RefreshCw,
-  Loader2
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { 
   PieChart as RechartsPieChart, 
@@ -150,51 +153,76 @@ export default function AdminDashboard() {
   const [engagementData, setEngagementData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchDashboardData();
+    // Immediate load with optimized performance
+    const loadDashboard = async () => {
+      // Load critical data first (show something immediately)
+      generateMockData();
+      
+      // Then fetch real data in background
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 300);
+    };
+
+    loadDashboard();
+    
     // Set up real-time updates every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Update chart data when stats change
+  // Update chart data when stats change (optimized)
   useEffect(() => {
     if (stats.totalStudents > 0) {
-      setAssignmentData([
-        { name: "Assigned", value: stats.assignedStudents, color: CHART_COLORS[2] },
-        { name: "Unassigned", value: stats.unassignedStudents, color: CHART_COLORS[3] },
-      ]);
+      // Use requestAnimationFrame for smooth updates
+      requestAnimationFrame(() => {
+        setAssignmentData([
+          { name: "Assigned", value: stats.assignedStudents, color: CHART_COLORS[2] },
+          { name: "Unassigned", value: stats.unassignedStudents, color: CHART_COLORS[3] },
+        ]);
 
-      setProposalData([
-        { name: "Pending", value: stats.pendingProposals, fill: CHART_COLORS[1] },
-        { name: "Approved", value: stats.approvedProposals, fill: CHART_COLORS[2] },
-        { name: "Rejected", value: stats.rejectedProposals, fill: CHART_COLORS[3] },
-      ]);
+        setProposalData([
+          { name: "Pending", value: stats.pendingProposals, fill: CHART_COLORS[1] },
+          { name: "Approved", value: stats.approvedProposals, fill: CHART_COLORS[2] },
+          { name: "Rejected", value: stats.rejectedProposals, fill: CHART_COLORS[3] },
+        ]);
+      });
     }
   }, [stats]);
 
   const fetchDashboardData = async () => {
     try {
-      setIsLoading(true);
+      // Don't show loading spinner if we already have data (for background updates)
+      const hasExistingData = stats.totalStudents > 0;
+      if (!hasExistingData) {
+        setIsLoading(true);
+      }
       
       // Try to fetch from new analytics endpoints first
       try {
-        // Fetch comprehensive dashboard stats
-        const { data: statsData } = await api.get('/analytics/dashboard-stats');
-        setStats(statsData);
+        // Use Promise.allSettled for parallel requests
+        const [statsResult, kpiResult, activitiesResult, alertsResult] = await Promise.allSettled([
+          api.get('/analytics/dashboard-stats'),
+          api.get('/analytics/kpi-metrics'),
+          api.get('/analytics/recent-activities?limit=8'),
+          api.get('/analytics/system-alerts')
+        ]);
 
-        // Fetch KPI metrics
-        const { data: kpiData } = await api.get('/analytics/kpi-metrics');
-        setKpis(kpiData);
+        // Process successful results
+        if (statsResult.status === 'fulfilled') {
+          setStats(statsResult.value.data);
+        }
+        if (kpiResult.status === 'fulfilled') {
+          setKpis(kpiResult.value.data);
+        }
+        if (activitiesResult.status === 'fulfilled') {
+          setActivities(activitiesResult.value.data);
+        }
+        if (alertsResult.status === 'fulfilled') {
+          setAlerts(alertsResult.value.data);
+        }
 
-        // Fetch recent activities
-        const { data: activitiesData } = await api.get('/analytics/recent-activities?limit=8');
-        setActivities(activitiesData);
-        
-        // Fetch system alerts
-        const { data: alertsData } = await api.get('/analytics/system-alerts');
-        setAlerts(alertsData);
-
-        // Fetch chart data
+        // Fetch chart data in parallel
         await fetchChartData();
 
         console.log("Dashboard data loaded successfully from analytics API");
@@ -229,15 +257,19 @@ export default function AdminDashboard() {
           };
           setKpis(calculatedKpis);
 
-          // Generate mock activities and alerts
-          generateMockActivities(basicStats);
-          generateMockAlerts(calculatedKpis);
-          generateMockChartData();
+          // Generate mock activities and alerts only if we don't have existing data
+          if (!hasExistingData) {
+            generateMockActivities(basicStats);
+            generateMockAlerts(calculatedKpis);
+            generateMockChartData();
+          }
           
           console.log("Using basic stats with mock enhancements");
         } catch (basicError) {
           console.error("Basic stats also failed, using full mock data:", basicError);
-          generateMockData();
+          if (!hasExistingData) {
+            generateMockData();
+          }
         }
       }
 
@@ -245,7 +277,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       // Final fallback to mock data
-      generateMockData();
+      if (stats.totalStudents === 0) {
+        generateMockData();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -457,6 +491,64 @@ export default function AdminDashboard() {
     setAlerts(mockAlerts);
   };
 
+  // Export functionality
+  const handleDashboardExport = (format: 'csv' | 'txt' | 'json') => {
+    const exportData: ExportData = {
+      summary: {
+        totalStudents: stats.totalStudents,
+        totalSupervisors: stats.totalSupervisors,
+        assignedStudents: stats.assignedStudents,
+        unassignedStudents: stats.unassignedStudents,
+        pendingProposals: stats.pendingProposals,
+        approvedProposals: stats.approvedProposals,
+        rejectedProposals: stats.rejectedProposals,
+        totalChapters: stats.totalChapters,
+        approvedChapters: stats.approvedChapters,
+        pendingChapters: stats.pendingChapters,
+        totalMessages: stats.totalMessages,
+        activeUsers: stats.activeUsers,
+        completionRate: stats.completionRate,
+        averageProgress: stats.averageProgress,
+        proposalApprovalRate: kpis.proposalApprovalRate,
+        averageResponseTime: kpis.averageResponseTime,
+        studentEngagement: kpis.studentEngagement,
+        systemUtilization: kpis.systemUtilization,
+        riskStudents: kpis.riskStudents,
+        onTrackStudents: kpis.onTrackStudents
+      },
+      metadata: {
+        generatedAt: new Date().toLocaleString(),
+        generatedBy: 'Admin Dashboard',
+        reportType: 'Dashboard Summary Report',
+        timeRange: 'Current'
+      }
+    };
+
+    // Add activities data
+    if (activities.length > 0) {
+      exportData.students = activities.map(activity => ({
+        type: activity.type,
+        user: activity.user.name,
+        role: activity.user.role,
+        title: activity.title,
+        description: activity.description || '',
+        timestamp: activity.timestamp
+      }));
+    }
+
+    switch (format) {
+      case 'csv':
+        exportToCSV(exportData);
+        break;
+      case 'txt':
+        exportToTXT(exportData);
+        break;
+      case 'json':
+        exportToJSON(exportData);
+        break;
+    }
+  };
+
   return (
     <ErrorBoundary>
       <DashboardLayout>
@@ -477,10 +569,29 @@ export default function AdminDashboard() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Report
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleDashboardExport('csv')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDashboardExport('txt')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as Text Report
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDashboardExport('json')}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
