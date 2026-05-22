@@ -1,5 +1,5 @@
 live view of the stytem
-https://project-managment-system-css.onrender.com
+(https://fyps-uds.vercel.app/)
 
 # FYP Management System
 
