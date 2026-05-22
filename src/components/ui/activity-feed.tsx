@@ -89,13 +89,13 @@ export function ActivityFeed({ activities, maxItems = 10, showHeader = true }: A
   const displayedActivities = activities.slice(0, maxItems);
 
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       {showHeader && (
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg">Recent Activity</CardTitle>
         </CardHeader>
       )}
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 overflow-y-auto max-h-[500px] flex-1">
         {displayedActivities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />

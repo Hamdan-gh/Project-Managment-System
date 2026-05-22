@@ -92,7 +92,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     role === "admin" ? "Administrator" : role === "supervisor" ? "Supervisor" : "Student";
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -101,16 +101,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Fixed */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 transform bg-sidebar transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static",
+          "fixed inset-y-0 left-0 z-50 w-72 transform bg-sidebar transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
-          <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-6">
+          <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-6 flex-shrink-0">
             <img 
               src={getAssetUrl("logo.jpg")}
               alt="CSS UDS Logo" 
@@ -129,7 +129,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
+          <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -148,7 +148,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </nav>
 
           {/* User section */}
-          <div className="border-t border-sidebar-border p-4">
+          <div className="border-t border-sidebar-border p-4 flex-shrink-0">
             <div className="mb-4 rounded-lg bg-sidebar-accent p-3 flex items-center gap-3">
               <UserAvatar 
                 user={user} 
@@ -175,9 +175,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-8">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar - Fixed */}
+        <header className="flex-shrink-0 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-8 z-10">
           <button
             className="lg:hidden text-foreground"
             onClick={() => setSidebarOpen(true)}
@@ -218,8 +218,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        {/* Page content - Scrollable */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );

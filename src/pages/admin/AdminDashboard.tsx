@@ -552,51 +552,54 @@ export default function AdminDashboard() {
   return (
     <ErrorBoundary>
       <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               Comprehensive overview of the FYP supervision system
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               Last updated: {lastUpdated.toLocaleTimeString()}
             </div>
-            <Button variant="outline" size="sm" onClick={fetchDashboardData}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Report
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleDashboardExport('csv')}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export as CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDashboardExport('txt')}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export as Text Report
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDashboardExport('json')}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export as JSON
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={fetchDashboardData} className="flex-1 sm:flex-none">
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Refresh</span>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                    <Download className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export Report</span>
+                    <span className="sm:hidden">Export</span>
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleDashboardExport('csv')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDashboardExport('txt')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as Text Report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDashboardExport('json')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as JSON
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Students"
             value={stats.totalStudents}
@@ -645,7 +648,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Performance Metrics */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Proposal Approval Rate</CardTitle>
@@ -722,16 +725,16 @@ export default function AdminDashboard() {
         </div>
 
         {/* Charts and Analytics */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="progress">Progress Tracking</TabsTrigger>
-            <TabsTrigger value="engagement">User Engagement</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="progress" className="text-xs sm:text-sm">Progress</TabsTrigger>
+            <TabsTrigger value="engagement" className="text-xs sm:text-sm">Engagement</TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
               {/* Assignment Status */}
               <Card>
                 <CardHeader>
@@ -743,19 +746,19 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="h-64 flex items-center justify-center">
+                    <div className="h-48 sm:h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : (
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <RechartsPieChart>
                           <Pie
                             data={assignmentData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
+                            innerRadius={40}
+                            outerRadius={80}
                             paddingAngle={2}
                             dataKey="value"
                             label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
@@ -783,16 +786,16 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="h-64 flex items-center justify-center">
+                    <div className="h-48 sm:h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : (
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={proposalData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} />
                           <Tooltip />
                           <Bar dataKey="value" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -804,24 +807,24 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="progress" className="space-y-6">
+          <TabsContent value="progress" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                   Student Progress Trends
                 </CardTitle>
-                <CardDescription>Monthly student enrollment and project completion</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Monthly student enrollment and project completion</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
+                <div className="h-64 sm:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={progressData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
+                      <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                       <Area 
                         type="monotone" 
                         dataKey="students" 
@@ -845,24 +848,24 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="engagement" className="space-y-6">
+          <TabsContent value="engagement" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                   Weekly User Engagement
                 </CardTitle>
-                <CardDescription>Daily login activity, messages, and submissions</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Daily login activity, messages, and submissions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
+                <div className="h-64 sm:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={engagementData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                       <Line 
                         type="monotone" 
                         dataKey="logins" 
@@ -891,8 +894,8 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="performance" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
+          <TabsContent value="performance" className="space-y-4 sm:space-y-6">
+            <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
               <StatCard
                 title="Average Project Duration"
                 value="4.2 months"
@@ -933,7 +936,7 @@ export default function AdminDashboard() {
         </Tabs>
 
         {/* Activity and Alerts */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           <ActivityFeed activities={activities} maxItems={8} />
           <AlertCard alerts={alerts} maxItems={6} />
         </div>
@@ -941,49 +944,49 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Target className="h-4 w-4 sm:h-5 sm:w-5" />
               Quick Actions
             </CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="flex items-center gap-3">
-                  <UserPlus className="h-5 w-5 text-blue-600" />
+            <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <Button variant="outline" className="justify-start h-auto p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
                   <div className="text-left">
-                    <div className="font-medium">Add Student</div>
+                    <div className="font-medium text-sm">Add Student</div>
                     <div className="text-xs text-muted-foreground">Register new student</div>
                   </div>
                 </div>
               </Button>
               
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="flex items-center gap-3">
-                  <UserCog className="h-5 w-5 text-green-600" />
+              <Button variant="outline" className="justify-start h-auto p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <UserCog className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
                   <div className="text-left">
-                    <div className="font-medium">Assign Supervisor</div>
+                    <div className="font-medium text-sm">Assign Supervisor</div>
                     <div className="text-xs text-muted-foreground">Manage assignments</div>
                   </div>
                 </div>
               </Button>
               
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-purple-600" />
+              <Button variant="outline" className="justify-start h-auto p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
                   <div className="text-left">
-                    <div className="font-medium">Review Proposals</div>
+                    <div className="font-medium text-sm">Review Proposals</div>
                     <div className="text-xs text-muted-foreground">{stats.pendingProposals} pending</div>
                   </div>
                 </div>
               </Button>
               
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="h-5 w-5 text-orange-600" />
+              <Button variant="outline" className="justify-start h-auto p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 flex-shrink-0" />
                   <div className="text-left">
-                    <div className="font-medium">Send Announcement</div>
+                    <div className="font-medium text-sm">Send Announcement</div>
                     <div className="text-xs text-muted-foreground">Broadcast message</div>
                   </div>
                 </div>

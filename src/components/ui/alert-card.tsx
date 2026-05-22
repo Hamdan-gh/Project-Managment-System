@@ -99,9 +99,9 @@ export function AlertCard({ alerts, maxItems = 5, showHeader = true, onViewAll }
   const warningCount = alerts.filter(a => a.type === "warning").length;
 
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       {showHeader && (
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               Alerts & Notifications
@@ -128,7 +128,7 @@ export function AlertCard({ alerts, maxItems = 5, showHeader = true, onViewAll }
           </div>
         </CardHeader>
       )}
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 overflow-y-auto max-h-[500px] flex-1">
         {displayedAlerts.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />

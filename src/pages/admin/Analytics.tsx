@@ -478,18 +478,18 @@ export default function Analytics() {
   return (
     <ErrorBoundary>
       <DashboardLayout>
-        <div className="space-y-8">
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Student Analytics</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Student Analytics</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               Detailed insights into student performance and engagement
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -500,7 +500,7 @@ export default function Analytics() {
               </SelectContent>
             </Select>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -510,15 +510,12 @@ export default function Analytics() {
                 <SelectItem value="se">Software Engineering</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Report
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Download className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Export Report</span>
+                  <span className="sm:hidden">Export</span>
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
@@ -541,7 +538,7 @@ export default function Analytics() {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Average Progress"
             value="68%"
@@ -591,40 +588,40 @@ export default function Analytics() {
         </div>
 
         {/* Analytics Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="students">Student Details</TabsTrigger>
-            <TabsTrigger value="supervisors">Supervisor Performance</TabsTrigger>
-            <TabsTrigger value="departments">Department Analysis</TabsTrigger>
-            <TabsTrigger value="predictions">Risk Analysis</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="students" className="text-xs sm:text-sm">Students</TabsTrigger>
+            <TabsTrigger value="supervisors" className="text-xs sm:text-sm">Supervisors</TabsTrigger>
+            <TabsTrigger value="departments" className="text-xs sm:text-sm">Departments</TabsTrigger>
+            <TabsTrigger value="predictions" className="text-xs sm:text-sm col-span-2 sm:col-span-1">Risk Analysis</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
               {/* Progress Distribution */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <PieChart className="h-4 w-4 sm:h-5 sm:w-5" />
                     Progress Distribution
                   </CardTitle>
-                  <CardDescription>Student progress across different ranges</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">Student progress across different ranges</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="h-64 flex items-center justify-center">
+                    <div className="h-48 sm:h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : progressDistributionData && progressDistributionData.length > 0 ? (
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <RechartsPieChart>
                           <Pie
                             data={progressDistributionData}
                             cx="50%"
                             cy="50%"
-                            outerRadius={80}
+                            outerRadius={60}
                             dataKey="count"
                             label={({ range, count }) => `${range}: ${count}`}
                           >
@@ -637,7 +634,7 @@ export default function Analytics() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    <div className="h-48 sm:h-64 flex items-center justify-center text-muted-foreground">
                       No data available
                     </div>
                   )}
@@ -647,26 +644,26 @@ export default function Analytics() {
               {/* Engagement Trends */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                     Engagement Trends
                   </CardTitle>
-                  <CardDescription>Weekly engagement and activity metrics</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">Weekly engagement and activity metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="h-64 flex items-center justify-center">
+                    <div className="h-48 sm:h-64 flex items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : engagementTrendData && engagementTrendData.length > 0 ? (
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={engagementTrendData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="week" />
-                          <YAxis />
+                          <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} />
                           <Tooltip />
-                          <Legend />
+                          <Legend wrapperStyle={{ fontSize: '12px' }} />
                           <Line 
                             type="monotone" 
                             dataKey="engagement" 
@@ -685,7 +682,7 @@ export default function Analytics() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    <div className="h-48 sm:h-64 flex items-center justify-center text-muted-foreground">
                       No data available
                     </div>
                   )}
@@ -694,28 +691,30 @@ export default function Analytics() {
             </div>
           </TabsContent>
 
-          <TabsContent value="students" className="space-y-6">
+          <TabsContent value="students" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   Student Performance Analysis
                 </CardTitle>
-                <CardDescription>Detailed breakdown of individual student metrics</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Detailed breakdown of individual student metrics</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Risk Level</TableHead>
-                      <TableHead>Engagement</TableHead>
-                      <TableHead>Chapters</TableHead>
-                      <TableHead>Last Activity</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="inline-block min-w-full align-middle">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[150px]">Student</TableHead>
+                          <TableHead className="min-w-[80px]">Progress</TableHead>
+                          <TableHead className="min-w-[80px]">Risk Level</TableHead>
+                          <TableHead className="min-w-[100px]">Engagement</TableHead>
+                          <TableHead className="min-w-[80px]">Chapters</TableHead>
+                          <TableHead className="min-w-[100px]">Last Activity</TableHead>
+                          <TableHead className="min-w-[80px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
@@ -777,31 +776,35 @@ export default function Analytics() {
                     )}
                   </TableBody>
                 </Table>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="supervisors" className="space-y-6">
+          <TabsContent value="supervisors" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5" />
                   Supervisor Performance Metrics
                 </CardTitle>
-                <CardDescription>Analysis of supervisor effectiveness and workload</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Analysis of supervisor effectiveness and workload</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Supervisor</TableHead>
-                      <TableHead>Students</TableHead>
-                      <TableHead>Avg Progress</TableHead>
-                      <TableHead>Response Time</TableHead>
-                      <TableHead>Satisfaction</TableHead>
-                      <TableHead>Completion Rate</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="inline-block min-w-full align-middle">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[150px]">Supervisor</TableHead>
+                          <TableHead className="min-w-[100px]">Students</TableHead>
+                          <TableHead className="min-w-[120px]">Avg Progress</TableHead>
+                          <TableHead className="min-w-[120px]">Response Time</TableHead>
+                          <TableHead className="min-w-[100px]">Satisfaction</TableHead>
+                          <TableHead className="min-w-[120px]">Completion Rate</TableHead>
+                        </TableRow>
+                      </TableHeader>
                   <TableBody>
                     {supervisorPerformance && supervisorPerformance.length > 0 ? (
                       supervisorPerformance.map((supervisor) => (
@@ -851,26 +854,28 @@ export default function Analytics() {
                     )}
                   </TableBody>
                 </Table>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="departments" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          <TabsContent value="departments" className="space-y-4 sm:space-y-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Department Comparison</CardTitle>
-                  <CardDescription>Performance metrics across departments</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Department Comparison</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Performance metrics across departments</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
+                  <div className="h-48 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={departmentStats}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="department" />
-                        <YAxis />
+                        <XAxis dataKey="department" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={60} />
+                        <YAxis tick={{ fontSize: 11 }} />
                         <Tooltip />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
                         <Bar dataKey="completionRate" fill={CHART_COLORS[0]} name="Completion Rate %" />
                         <Bar dataKey="averageProgress" fill={CHART_COLORS[1]} name="Average Progress %" />
                       </BarChart>
@@ -881,11 +886,11 @@ export default function Analytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Department Statistics</CardTitle>
-                  <CardDescription>Key metrics by department</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Department Statistics</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Key metrics by department</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {departmentStats && departmentStats.length > 0 ? (
                       departmentStats.map((dept, index) => (
                         <div key={index} className="p-4 border rounded-lg">
@@ -920,23 +925,23 @@ export default function Analytics() {
             </div>
           </TabsContent>
 
-          <TabsContent value="predictions" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          <TabsContent value="predictions" className="space-y-4 sm:space-y-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
                     Risk Factor Analysis
                   </CardTitle>
-                  <CardDescription>Common factors contributing to project delays</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">Common factors contributing to project delays</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
+                  <div className="h-48 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={riskFactorsData}>
                         <PolarGrid />
-                        <PolarAngleAxis dataKey="factor" />
-                        <PolarRadiusAxis angle={90} domain={[0, 10]} />
+                        <PolarAngleAxis dataKey="factor" tick={{ fontSize: 10 }} />
+                        <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fontSize: 10 }} />
                         <Radar
                           name="Risk Level"
                           dataKey="value"
@@ -953,11 +958,11 @@ export default function Analytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Predictive Insights</CardTitle>
-                  <CardDescription>AI-powered recommendations and predictions</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Predictive Insights</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">AI-powered recommendations and predictions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="p-4 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="h-4 w-4 text-red-600" />
