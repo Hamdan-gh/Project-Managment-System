@@ -219,16 +219,6 @@ export default function Messages() {
       setIsSending(false);
     }
   };
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.msg || error.message || "Failed to send message",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSending(false);
-    }
-  };
 
   const handleSendVoice = async (audioBlob: Blob, duration: number) => {
     if (!selectedStudent || !user) {
