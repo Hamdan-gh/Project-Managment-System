@@ -7,7 +7,7 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, // STARTTLS — port 587 is open on Render free tier (465 is blocked)
+    secure: false, // STARTTLS
     auth: {
       user: process.env.EMAIL_USER,
       pass,
@@ -15,7 +15,9 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false,
     },
-    connectionTimeout: 15000, // 15s — fail fast instead of hanging 90s
+    // Force IPv4 — Render free tier does not support IPv6 outbound (ENETUNREACH on ::)
+    family: 4,
+    connectionTimeout: 15000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
   });
