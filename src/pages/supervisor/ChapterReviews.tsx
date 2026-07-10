@@ -127,7 +127,12 @@ export default function ChapterReviews() {
       toast.success("File downloaded successfully");
     } catch (error: any) {
       console.error("Error downloading file:", error);
-      toast.error("Failed to download file");
+      const status = error.response?.status;
+      if (status === 404) {
+        toast.error("File not found on server. The file may have been lost after a server restart. Ask the student to re-upload.");
+      } else {
+        toast.error("Failed to download file");
+      }
     }
   };
 
@@ -142,8 +147,15 @@ export default function ChapterReviews() {
       toast.success("PDF preview loaded");
     } catch (error: any) {
       console.error("Error loading preview:", error);
-      const errorMsg = error.response?.data?.msg || "Failed to load PDF preview";
-      toast.error(errorMsg);
+      const status = error.response?.status;
+      if (status === 404) {
+        toast.error("PDF file not found on server. The file may have been lost after a server restart. Ask the student to re-upload.");
+      } else if (status === 403) {
+        toast.error("You don't have permission to preview this chapter.");
+      } else {
+        toast.error("Failed to load PDF preview. Try downloading instead.");
+      }
+      setPreviewUrl(null);
     }
   };
 
@@ -244,7 +256,7 @@ export default function ChapterReviews() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              previewChapter(chapter._id);
+                              setPreviewUrl(null);
                               openReviewDialog(chapter);
                             }}
                           >
@@ -329,13 +341,25 @@ export default function ChapterReviews() {
             </DialogDescription>
           </DialogHeader>
 
-          {previewUrl && (
+          {previewUrl ? (
             <div className="border rounded-lg overflow-hidden">
               <iframe
                 src={previewUrl}
                 className="w-full h-96"
                 title="PDF Preview"
               />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center border rounded-lg h-32 gap-2 bg-muted/30">
+              <p className="text-sm text-muted-foreground">PDF preview not loaded</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => selectedChapter && previewChapter(selectedChapter._id)}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Load PDF Preview
+              </Button>
             </div>
           )}
 

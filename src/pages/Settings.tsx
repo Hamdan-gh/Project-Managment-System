@@ -236,14 +236,14 @@ export default function Settings() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="space-y-6">
-        <div>
+      <div className="flex flex-col items-center w-full space-y-6 px-4 py-6">
+        <div className="w-full max-w-2xl">
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your account settings</p>
         </div>
 
         {/* Avatar Upload Card */}
-        <Card className="max-w-lg">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserIcon className="h-5 w-5" />
@@ -310,7 +310,7 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card className="max-w-lg">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />

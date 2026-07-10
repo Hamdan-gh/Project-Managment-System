@@ -1,81 +1,65 @@
-
 import axios from "axios";
 
-// Use environment variable for production, fallback to local for development
+// -------------------------------------------------------
+// Base URL resolution
+// Priority: VITE_API_URL env var → Vite proxy (/api)
+// -------------------------------------------------------
 const getBaseURL = () => {
-  // Always prioritize VITE_API_URL if it's set
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  
-  // In production (when served from the same domain), use relative path
   if (import.meta.env.PROD) {
     return "/api";
   }
-  
-  // Development fallback URLs
-  const possibleBaseURLs = [
-    "/api", // Proxy (if available)
-    "http://127.0.0.1:5000/api",
-    "http://localhost:5000/api",
-    `http://${window.location.hostname}:5000/api`
-  ];
-  
-  return possibleBaseURLs[0];
+  return "/api"; // local dev: Vite proxy forwards to http://127.0.0.1:5000
 };
 
 const baseURL = getBaseURL();
+console.log(`[API] Base URL: ${baseURL}`);
 
-// Test connectivity for development only
-const testConnection = async () => {
-  if (import.meta.env.VITE_API_URL) {
-    console.log(`Using production API: ${baseURL}`);
-    return;
-  }
-  
-  const possibleBaseURLs = [
-    "/api",
-    "http://127.0.0.1:5000/api",
-    "http://localhost:5000/api",
-    `http://${window.location.hostname}:5000/api`
-  ];
-  
-  for (const url of possibleBaseURLs) {
-    try {
-      const testApi = axios.create({ baseURL: url, timeout: 2000 });
-      await testApi.get('/test');
-      console.log(`Using API base URL: ${url}`);
-      break;
-    } catch (error) {
-      // Silently try next URL
-    }
-  }
-};
-
+// -------------------------------------------------------
+// Axios instance
+// -------------------------------------------------------
 export const api = axios.create({
   baseURL,
-  timeout: 60000, // Increased to 60 seconds for file uploads (especially to Cloudinary)
+  timeout: 90000, // 90s — accounts for Render free-tier cold start (~50s)
   headers: {
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  },
 });
 
+// Attach JWT token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+// Unified error logging
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only log actual API errors, not network connectivity issues during testing
-    if (error.config && !error.config.url?.includes('/test')) {
-      console.error('API Error:', error.response?.data?.msg || error.message);
+    const url = error.config?.url ?? "";
+    if (!url.includes("/test")) {
+      console.error("[API] Error:", error.response?.data?.msg ?? error.message);
     }
     return Promise.reject(error);
   }
 );
 
-// Test connection on module load
-testConnection();
+// -------------------------------------------------------
+// Wake-up ping for Render free tier
+// Sends a lightweight request on app load so the backend
+// is warm by the time the user tries to log in.
+// -------------------------------------------------------
+const wakeUpBackend = async () => {
+  try {
+    console.log("[API] Pinging backend to wake it up...");
+    await api.get("/test", { timeout: 90000 });
+    console.log("[API] Backend is awake and ready.");
+  } catch {
+    console.warn("[API] Backend wake-up ping failed — it may still be starting. Requests will retry.");
+  }
+};
+
+wakeUpBackend();

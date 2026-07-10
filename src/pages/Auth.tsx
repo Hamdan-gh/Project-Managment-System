@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { User, Lock, Loader2, Shield, Users, FileText, MessageSquare } from "lucide-react";
+import { User, Lock, Loader2, Shield, Users, FileText, MessageSquare, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getAssetUrl } from "@/lib/utils";
@@ -19,6 +19,7 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, user, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -214,13 +215,25 @@ export default function Auth() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="login-password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className="h-12 pl-12 bg-muted/50 border-border/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="h-12 pl-12 pr-12 bg-muted/50 border-border/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 

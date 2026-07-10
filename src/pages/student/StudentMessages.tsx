@@ -59,6 +59,17 @@ export default function StudentMessages() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    const viewport = scrollAreaRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLElement | null;
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    }
+  };
+
   const fetchSupervisor = async () => {
     try {
       const { data } = await api.get('/auth/me');
@@ -111,8 +122,6 @@ export default function StudentMessages() {
     }
   }, [supervisor, user, refreshNotifications]);
 
-  // Remove all auto-scroll functions - make scrolling completely manual
-
   useEffect(() => {
     if (user) {
       fetchSupervisor();
@@ -126,7 +135,12 @@ export default function StudentMessages() {
     }
   }, [supervisor, fetchMessages, markMessagesAsRead]);
 
-  // Remove all auto-scroll effects - no automatic scrolling
+  // Scroll to bottom when messages load or a new message arrives
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom("auto");
+    }
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !supervisor || !user) return;
@@ -141,7 +155,6 @@ export default function StudentMessages() {
       });
 
       setNewMessage("");
-      // No auto-scroll - user must manually scroll to see new messages
       fetchMessages();
       // Refresh notifications after sending message
       await refreshNotifications();
@@ -321,8 +334,8 @@ export default function StudentMessages() {
                                 className={cn(
                                   "relative group max-w-[80%] md:max-w-[70%] rounded-lg px-3 py-2 message-bubble shadow-sm",
                                   isOwn 
-                                    ? "bg-[#dcf8c6] text-gray-800 rounded-br-sm" 
-                                    : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
+                                    ? "bg-[#dcf8c6] text-gray-800 dark:bg-[#1a4731] dark:text-emerald-100 rounded-br-sm" 
+                                    : "bg-white text-gray-800 dark:bg-slate-700 dark:text-slate-100 rounded-bl-sm border border-gray-100 dark:border-slate-600"
                                 )}
                               >
                                 {isOwn && (
@@ -331,9 +344,9 @@ export default function StudentMessages() {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border rounded-full hover:bg-gray-50"
+                                        className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-600 shadow-sm border dark:border-slate-500 rounded-full hover:bg-gray-50 dark:hover:bg-slate-500"
                                       >
-                                        <MoreVertical className="h-3 w-3 text-gray-600" />
+                                        <MoreVertical className="h-3 w-3 text-gray-600 dark:text-slate-300" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-32">
@@ -361,7 +374,9 @@ export default function StudentMessages() {
                                 <div
                                   className={cn(
                                     "text-xs flex items-center gap-1 justify-end",
-                                    "text-gray-500"
+                                    isOwn
+                                      ? "text-gray-500 dark:text-emerald-300/70"
+                                      : "text-gray-500 dark:text-slate-400"
                                   )}
                                 >
                                   <span>

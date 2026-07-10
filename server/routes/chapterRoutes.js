@@ -222,7 +222,7 @@ router.get("/download/:id", auth, async (req, res) => {
 
     if (!fs.existsSync(chapter.filePath)) {
       console.log("File does not exist at path:", chapter.filePath);
-      return res.status(404).json({ msg: "File not found on server" });
+      return res.status(404).json({ msg: "File not found on server. It may have been lost after a server restart. Please ask the student to re-upload." });
     }
 
     console.log("Downloading file:", chapter.filePath);
@@ -262,7 +262,7 @@ router.get("/preview/:id", auth, async (req, res) => {
 
     if (!fs.existsSync(chapter.filePath)) {
       console.log("File does not exist at path:", chapter.filePath);
-      return res.status(404).json({ msg: "File not found on server" });
+      return res.status(404).json({ msg: "File not found on server. It may have been lost after a server restart. Please ask the student to re-upload." });
     }
 
     console.log("Sending file:", chapter.filePath);

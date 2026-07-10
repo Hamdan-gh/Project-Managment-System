@@ -49,11 +49,13 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
+      'http://localhost:8080',   // Vite dev server
+      'http://127.0.0.1:8080',  // Vite dev server (alternate)
       'https://fyps-uds.vercel.app'
     ];
     
-    // Check if origin is in allowed list or is a vercel.app domain
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    // Check if origin is in allowed list or is a vercel.app / onrender.com domain
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
       callback(null, true);
     } else {
       callback(null, true); // Allow all for now, can restrict later
