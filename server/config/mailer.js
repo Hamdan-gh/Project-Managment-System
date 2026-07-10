@@ -1,13 +1,19 @@
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+// Force IPv4 DNS resolution globally — Render free tier has no IPv6 outbound routing.
+// Without this, smtp.gmail.com resolves to an IPv6 address (2607:f8b0::) which is
+// unreachable on Render, causing ENETUNREACH errors.
+dns.setDefaultResultOrder("ipv4first");
 
 const createTransporter = () => {
-  // Strip any spaces from the app password (Gmail shows it with spaces but it must be entered without)
+  // Strip any spaces from the app password (Gmail shows it with spaces but must be without)
   const pass = (process.env.EMAIL_PASS || "").replace(/\s/g, "");
 
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, // STARTTLS
+    secure: false, // STARTTLS on port 587
     auth: {
       user: process.env.EMAIL_USER,
       pass,
@@ -15,11 +21,9 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false,
     },
-    // Force IPv4 — Render free tier does not support IPv6 outbound (ENETUNREACH on ::)
-    family: 4,
-    connectionTimeout: 15000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 20000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 };
 
