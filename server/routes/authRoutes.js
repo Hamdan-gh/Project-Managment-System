@@ -28,11 +28,18 @@ router.post("/send-credentials", auth, async (req, res) => {
       });
     }
 
+    console.log("Attempting to send credentials email to:", email);
+    console.log("Using EMAIL_USER:", process.env.EMAIL_USER);
+
     await sendSupervisorCredentials(email, name, password);
+    console.log("Email sent successfully to:", email);
     res.json({ msg: "Credentials sent successfully" });
   } catch (error) {
     console.error("Error sending credentials email:", error);
-    res.status(500).json({ msg: "Failed to send email. Check EMAIL_USER and EMAIL_PASS configuration." });
+    // Return the actual error so we can diagnose it
+    res.status(500).json({
+      msg: `Failed to send email: ${error.message || "Unknown error"}`,
+    });
   }
 });
 
