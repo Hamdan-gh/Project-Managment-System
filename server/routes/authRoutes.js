@@ -21,10 +21,9 @@ router.post("/send-credentials", auth, async (req, res) => {
       return res.status(400).json({ msg: "email, name, and password are required" });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS ||
-        process.env.EMAIL_USER === "your_gmail@gmail.com") {
+    if (!process.env.RESEND_API_KEY) {
       return res.status(503).json({
-        msg: "Email service is not configured. Please set EMAIL_USER and EMAIL_PASS in the server environment variables.",
+        msg: "Email service is not configured. Please set RESEND_API_KEY in the server environment variables.",
       });
     }
 

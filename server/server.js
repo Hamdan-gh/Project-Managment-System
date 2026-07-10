@@ -6,11 +6,6 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import dns from "dns";
-
-// Force IPv4 DNS globally — Render free tier blocks IPv6 outbound connections.
-// smtp.gmail.com otherwise resolves to IPv6 (ENETUNREACH).
-dns.setDefaultResultOrder("ipv4first");
 
 import authRoutes from "./routes/authRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
