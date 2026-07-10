@@ -6,12 +6,18 @@ const createTransporter = () => {
 
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // SSL
+    port: 587,
+    secure: false, // STARTTLS — port 587 is open on Render free tier (465 is blocked)
     auth: {
       user: process.env.EMAIL_USER,
       pass,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
+    connectionTimeout: 15000, // 15s — fail fast instead of hanging 90s
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 };
 

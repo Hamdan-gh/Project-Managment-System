@@ -165,7 +165,7 @@ export default function Supervisors() {
         email: generatedCredentials.email,
         name: generatedCredentials.name,
         password: generatedCredentials.password,
-      });
+      }, { timeout: 30000 }); // 30s — enough for SMTP, won't hang forever
       setEmailSent(true);
       toast({ title: "Email Sent", description: `Credentials sent to ${generatedCredentials.email}` });
     } catch (error: any) {
